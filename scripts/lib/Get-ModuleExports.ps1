@@ -29,7 +29,9 @@ function Get-ModuleExports {
         $results["DscResources"] += @($moduleInfo.ExportedDscResources)
         $results["FormatFiles"] += @($moduleInfo.ExportedFormatFiles)
     } finally {
-        $moduleInfo | Remove-Module -Force
+        if ($moduleInfo) {
+            $moduleInfo | Remove-Module -Force
+        }
     }
 
     return $results
