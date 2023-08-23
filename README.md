@@ -8,5 +8,5 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 [![Awesome Badges](https://img.shields.io/badge/badges-awesome-green.svg)](https://github.com/Naereen/badges)
 
-
+Cmdlets that are semantically equivalent to GNU coreutils - useful when converting shell scripts to PowerShell.
 
