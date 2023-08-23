@@ -1,0 +1,1 @@
+Cmdlets that are semantically equivalent to GNU coreutils - useful when converting shell scripts to PowerShell.

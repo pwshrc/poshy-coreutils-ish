@@ -1,0 +1,7 @@
+coreutils
+arch
+basename
+dirname
+chmod
+shuf
+pwshrc
