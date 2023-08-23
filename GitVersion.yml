@@ -1,0 +1,8 @@
+mode: ContinuousDelivery
+# This version-bumping scheme requires semantic commits authored using Gitmoji.
+# For more information on Gitmoji, see: https://gitmoji.dev/.
+major-version-bump-message: '(\+semver:\s?(breaking|major))|^\s*(💥)'
+minor-version-bump-message: '(\+semver:\s?(feature|minor))|^\s*(✨|🏗|⚡|🎉|➕|➖|📄|🚸|🏷️|🐛|🧵|🦺)'
+patch-version-bump-message: '(\+semver:\s?(fix|patch))|^\s*(🩹|🚑|🔒|♻|💚|⬆|⬇|🔧|📝|🔥|👷‍♂️|🔨|⏪|🚚|🎨|🚀|💄|✅|🔐|🚨|🚧|📌|📈|🌐|✏️|💩|🔀|📦|👽|🍱|♿|💡|🍻|💬|🗨️|🗃️|🔊|🔉|🔈|🔇|👥|📱|🤡|🥚|🙈|📸|📷|⚗️|🔍|🔎|🌱|🚩|🥅|💫|🗑️|🛂|🧐|⚰️|🧑‍💻|👨‍💻|👩‍💻|💸)'
+no-bump-message: '\+semver:\s?(none|skip)'
+assembly-versioning-scheme: MajorMinorPatch
