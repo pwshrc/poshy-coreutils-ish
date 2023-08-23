@@ -113,5 +113,7 @@ function Get-PackageTags {
         $tags = $tags | ForEach-Object { $_ -replace "\s+", "-" }
     }
 
+    $tags = $tags | Sort-Object -Unique
+
     return $tags
 }
