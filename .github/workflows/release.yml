@@ -1,0 +1,167 @@
+name: Release Changes
+
+on:
+  workflow_run:
+    workflows: ["Validate Changes"]
+    branches: [main]
+    types:
+      - completed
+
+jobs:
+  begin-release:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - run: echo "Beginning release."
+      - name: 'Download artifacts from triggering workflow'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id,
+            });
+            let matchArtifacts = allArtifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == 'version.json' || artifact.name == 'PSGallery-package' || artifact.name == 'release-notes.md';
+            });
+            let downloadsPromises = matchArtifacts.map(async (artifact) => {
+              var blob = await github.rest.actions.downloadArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: artifact.id,
+                archive_format: 'zip'
+              });
+              return { name: artifact.name, data: blob.data }
+            });
+            let downloads = await Promise.all(downloadsPromises);
+            let fs = require('fs');
+            downloads.forEach((download) => {
+              fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/${download.name}.zip`, Buffer.from(download.data));
+            });
+      - name: Unzip version.json
+        shell: pwsh
+        run: Expand-Archive -Path "version.json.zip" -DestinationPath ./version/
+      - name: Upload version.json
+        uses: actions/upload-artifact@v3
+        with:
+          name: version.json
+          path: ./version/version.json
+      - name: Unzip PSGallery-package
+        shell: pwsh
+        run: Expand-Archive -Path "PSGallery-package.zip" -DestinationPath ./package/
+      - name: Upload PSGallery-package
+        uses: actions/upload-artifact@v3
+        with:
+          name: PSGallery-package
+          path: ./package/*.nupkg
+      - name: Unzip release-notes.md
+        shell: pwsh
+        run: Expand-Archive -Path "release-notes.md.zip" -DestinationPath ./release-notes/
+      - name: Upload release-notes.md
+        uses: actions/upload-artifact@v3
+        with:
+          name: release-notes.md
+          path: ./release-notes/release-notes.md
+
+  test-publish-psgallery-package:
+    runs-on: ubuntu-latest
+    needs: [begin-release]
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v3
+    - name: Download PSGallery package
+      uses: actions/download-artifact@v2
+      with:
+        name: PSGallery-package
+        path: ./out/
+    - name: Publish Prerelease to PSGallery (WhatIf)
+      if: "${{ steps.gitversion_vars.outputs.PreReleaseTag != '' }}"
+      shell: pwsh
+      run: ./scripts/publish.ps1 -NUGET_KEY "abc" -Prerelease -WhatIf
+    - name: Publish Release to PSGallery (WhatIf)
+      if: "${{ steps.gitversion_vars.outputs.PreReleaseTag == '' }}"
+      shell: pwsh
+      run: ./scripts/publish.ps1 -NUGET_KEY "abc" -WhatIf
+
+  publish-psgallery-package:
+    runs-on: ubuntu-latest
+    needs: [test-publish-psgallery-package]
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v3
+    - name: Download version.json
+      uses: actions/download-artifact@v2
+      with:
+        name: version.json
+        path: ./out/
+    - name: Populate GitVersion variables
+      id: gitversion_vars
+      shell: pwsh
+      run: |
+        [object] $version = Get-Content -Path ./out/version.json -Encoding UTF8 | ConvertFrom-Json
+        foreach ($key in $version.PSObject.Properties.Name) {
+          echo "::set-output name=$key::$($version.$key)"
+        }
+    - name: Download PSGallery package
+      uses: actions/download-artifact@v2
+      with:
+        name: PSGallery-package
+        path: ./out/
+    - name: Publish Prerelease to PSGallery
+      if: "${{ steps.gitversion_vars.outputs.PreReleaseTag != '' }}"
+      shell: pwsh
+      env:
+        NUGET_KEY: ${{ secrets.NUGET_KEY }}
+      run: ./scripts/publish.ps1 -NUGET_KEY "$env:NUGET_KEY" -Prerelease
+    - name: Publish Release to PSGallery
+      if: "${{ steps.gitversion_vars.outputs.PreReleaseTag == '' }}"
+      shell: pwsh
+      env:
+        NUGET_KEY: ${{ secrets.NUGET_KEY }}
+      run: ./scripts/publish.ps1 -NUGET_KEY "$env:NUGET_KEY"
+
+  publish-github-release:
+    runs-on: ubuntu-latest
+    needs: [publish-psgallery-package]
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v3
+    - name: Download version.json
+      uses: actions/download-artifact@v2
+      with:
+        name: version.json
+        path: ./out/
+    - name: Populate GitVersion variables
+      id: gitversion_vars
+      shell: pwsh
+      run: |
+        [object] $version = Get-Content -Path ./out/version.json -Encoding UTF8 | ConvertFrom-Json
+        foreach ($key in $version.PSObject.Properties.Name) {
+          echo "::set-output name=$key::$($version.$key)"
+        }
+    - name: Download release-notes.md
+      uses: actions/download-artifact@v2
+      with:
+        name: release-notes.md
+        path: ./out/
+    - name: Download PSGallery package
+      uses: actions/download-artifact@v2
+      with:
+        name: PSGallery-package
+        path: ./out/
+    - name: Publish GitHub release
+      id: publish_github_release
+      uses: softprops/action-gh-release@v1
+      with:
+        token: "${{ secrets.RELEASE_GITHUB_TOKEN }}"
+        name: "v${{ steps.gitversion_vars.outputs.SemVer }}"
+        tag_name: "v${{ steps.gitversion_vars.outputs.SemVer }}"
+        target_commitish: "${{ steps.gitversion_vars.outputs.Sha }}"
+        generate_release_notes: false
+        body_path: ./out/release-notes.md
+        prerelease: "${{ steps.gitversion_vars.outputs.PreReleaseTag != '' }}"
+        draft: false
+        files: |
+          ./out/*.nupkg
+        fail_on_unmatched_files: true
