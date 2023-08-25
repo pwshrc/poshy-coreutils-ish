@@ -20,7 +20,10 @@ function Get-ModuleExports {
         "FormatFiles" = @()
     }
     try {
-        [System.Management.Automation.PSModuleInfo] $moduleInfo = Import-Module -Name $Psm1Path -Force -PassThru
+        [System.Management.Automation.PSModuleInfo] $moduleInfo = Import-Module -Name $Psm1Path -Force -DisableNameChecking -PassThru
+        if (-not $moduleInfo) {
+            throw "Failed to import module from path '$Psm1Path'."
+        }
         $results["Functions"] += @($moduleInfo.ExportedFunctions.Keys)
         $results["Cmdlets"] += @($moduleInfo.ExportedCmdlets.Keys)
         $results["Commands"] += @($moduleInfo.ExportedCommands.Keys)

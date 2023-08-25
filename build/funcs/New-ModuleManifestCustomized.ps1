@@ -59,6 +59,10 @@ function New-ModuleManifestCustomized {
 
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
+        [string] $PackageVersion,
+
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
         [string] $PackageVersionMajorMinorPatchBuild,
 
         [Parameter(Mandatory = $false)]
@@ -76,10 +80,14 @@ function New-ModuleManifestCustomized {
         [switch] $PSEdition_Desktop,
 
         [Parameter(Mandatory = $false)]
-        [switch] $PSEdition_Core
-    )
-    [string] $moduleManifestPath = "${PSScriptRoot}${ds}..${ds}..${ds}out${ds}${PackageId}.psd1"
+        [switch] $PSEdition_Core,
 
+        [Parameter(Mandatory = $false)]
+        [object[]] $NestedRuntimePSGalleryModules = @(),
+
+        [Parameter(Mandatory = $false)]
+        [string] $PathFromPsd1ParentToPsm1Parent = "."
+    )
     [hashtable] $additionNewModuleManifestArgs = @{}
     if (-not [string]::IsNullOrWhiteSpace($PackageVersionPrereleaseTag)) {
         $additionNewModuleManifestArgs["Prerelease"] = $PackageVersionPrereleaseTag
@@ -108,12 +116,39 @@ function New-ModuleManifestCustomized {
         }
     }
 
+    [hashtable] $privateData = @{
+        PackageVersion = $PackageVersion
+    }
+    $additionNewModuleManifestArgs["PrivateData"] = $privateData
+
+    [string[]] $nestedModules = @()
+    if ($NestedRuntimePSGalleryModules) {
+        $nestedModules += @(
+            $NestedRuntimePSGalleryModules `
+            | ForEach-Object {
+                [string] $psd1Path = ".${ds}lib${ds}$($_.id).$($_.version)${ds}$($_.id).psd1"
+                [string] $psm1Path = ".${ds}lib${ds}$($_.id).$($_.version)${ds}$($_.id).psm1"
+                if (Test-Path -Path $psd1Path -PathType Leaf -ErrorAction SilentlyContinue) {
+                    $psd1Path
+                } elseif (Test-Path -Path $psm1Path -PathType Leaf -ErrorAction SilentlyContinue) {
+                    $psm1Path
+                } else {
+                    throw "Could not find a `.psd1` or `.psm1` for module '$($_.id)' at version '$($_.version)'."
+                }
+            } `
+        )
+    }
+
+    # This is just where we write the psd1 _for now_.
+    # The project file generated later will decide where in the NuPkg it goes (and therefor where it lands when the NuPkg is expanded.)
+    [string] $moduleManifestPath = "${PSScriptRoot}${ds}..${ds}..${ds}out${ds}${PackageId}.psd1"
     if (-not (Test-Path (Split-Path -Path $moduleManifestPath -Parent))) {
         New-Item -Path (Split-Path -Path $moduleManifestPath -Parent) -ItemType Directory -Force | Out-Null
     }
+    [string] $pathToPsm1FromPsd1 = Join-Path -Path $PathFromPsd1ParentToPsm1Parent -ChildPath "${PackageId}.psm1"
     New-ModuleManifest `
         -Path $moduleManifestPath `
-        -RootModule "${PackageId}.psm1" `
+        -RootModule $pathToPsm1FromPsd1 `
         -Author ($Authors -join "; ") `
         -CompanyName $CompanyName `
         -Description $packageSynopsis `
@@ -125,6 +160,7 @@ function New-ModuleManifestCustomized {
         -ProjectUri $ProjectUrl `
         -IconUri $PackageIconUrl `
         -PowerShellVersion "7.0" `
+        -NestedModules $nestedModules `
         @additionNewModuleManifestArgs
 
     return Get-Item -Path $moduleManifestPath

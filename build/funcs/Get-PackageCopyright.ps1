@@ -15,7 +15,7 @@ function Get-PackageCopyright {
     [string] $copyright = ((Get-Content -Path $LicenseFilePath -Encoding UTF8 |
         Where-Object { $_ -match "(\(c\)|©️)" } |
         ForEach-Object { $_.Trim().TrimEnd(",").TrimEnd(";").TrimEnd(".") }
-    ) -join "; "+[Environment]::NewLine)
+    ) -join "; "+[Environment]::NewLine) + "."
     if ([string]::IsNullOrEmpty($copyright)) {
         throw "The file '${LicenseFilePath}' does not contain a copyright indicator."
     }

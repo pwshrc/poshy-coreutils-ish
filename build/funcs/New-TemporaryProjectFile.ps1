@@ -64,7 +64,14 @@ function New-TemporaryProjectFile {
 
         [Parameter(Mandatory = $true)]
         [ValidateScript({ Test-Path -Path $_ -PathType Leaf })]
-        [System.IO.FileInfo] $ModuleManifest
+        [System.IO.FileInfo] $ModuleManifest,
+
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $ModuleManifestPackageDir,
+
+        [Parameter(Mandatory = $false)]
+        [object[]] $NestedRuntimePSGalleryModules = @()
     )
 
     function Get-IconPath {
@@ -117,8 +124,21 @@ function New-TemporaryProjectFile {
         $propertyGroupElement.AppendChild($element) | Out-Null
     }
     [string] $moduleManifestFilePath = Resolve-Path -Path $ModuleManifest -Relative
+    [string] $nugetizerVersion = "0.9.2" # Pin to avoid SponsorLink
+    [string] $moduleManifestFilePackagePath = Join-Path -Path $ModuleManifestPackageDir -ChildPath "${PackageId}.psd1"
 
-    [string] $nugetizerVersion = "0.9.1" # Pin to avoid SponsorLink
+    [System.Xml.XmlElement[]] $itemGroupElementsForNestedRuntimePSGalleryModules = @()
+    if ($NestedRuntimePSGalleryModules) {
+        $itemGroupElementsForNestedRuntimePSGalleryModules += @(
+            $NestedRuntimePSGalleryModules | ForEach-Object {
+                [System.Xml.XmlElement] $element = $propertyGroupElement.OwnerDocument.CreateElement("None")
+                $element.SetAttribute("Include", "lib${ds}$($_.id).$($_.version)${ds}**${ds}*.*")
+                $element.SetAttribute("Pack", "true")
+                $element.SetAttribute("PackagePath", "lib${ds}$($_.id).$($_.version)${ds}")
+                $element
+            }
+        )
+    }
 
     [string] $projectFile = "${PSScriptRoot}${ds}..${ds}..${ds}${PackageId}.csproj"
     New-Item -Path $projectFile -ItemType File -Force | Out-Null
@@ -128,11 +148,17 @@ function New-TemporaryProjectFile {
         <PackageReference Include=`"NuGetizer`" Version=`"${nugetizerVersion}`" /> <!-- Pin to avoid SponsorLink -->
     </ItemGroup>
     <ItemGroup>
-        <None Include=`"src${ds}**`" Pack=`"true`" PackagePath=`"./`" />
         <None Include=`"${LicenseFileName}`" Pack=`"true`" />
         <None Include=`"${ReadmeFileName}`" Pack=`"true`" />
-        <None Include=`"$iconPath`" Pack=`"true`" PackagePath=`"$iconFileName`" />
-        <None Include=`"$moduleManifestFilePath`" Pack=`"true`" PackagePath=`"${PackageId}.psd1`" />
+        <None Include=`"${iconPath}`" Pack=`"true`" PackagePath=`"${iconFileName}`" />
+        <None Include=`"${moduleManifestFilePath}`" Pack=`"true`" PackagePath=`"${moduleManifestFilePackagePath}`" />
+        <None Remove=`"lib/**/*.*`" />
+        $($itemGroupElementsForNestedRuntimePSGalleryModules | ForEach-Object { $_.OuterXml })
+        <None Remove=`"lib/**/README.*`" />
+        <None Remove=`"lib/**/*.nupkg`" />
+    </ItemGroup>
+    <ItemGroup>
+        <Content Remove=`"**/*.*`" />
     </ItemGroup>
 </Project>"
     return Get-Item -Path $projectFile
