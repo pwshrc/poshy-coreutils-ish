@@ -27,7 +27,7 @@ jobs:
           Install-Module PSScriptAnalyzer -ErrorAction Stop
       - name: Lint with PSScriptAnalyzer
         shell: pwsh
-        run: ./scripts/lint.ps1 -NoFail
+        run: ./build/lint.ps1 -NoFail
 
   determine-version:
     name: Determine Version with GitVersion
@@ -141,7 +141,7 @@ jobs:
       run: |
         [string] $releaseNotes = (Get-Content -Raw -Path ./out/release-notes.md -Encoding UTF8).Trim()
         [object] $version = Get-Content -Raw -Path ./out/version.json -Encoding UTF8 | ConvertFrom-Json
-        ./scripts/package.ps1 -PackageVersionNuGet $version.NuGetVersionV2 -PackageVersionMajorMinorPatchBuild $version.AssemblySemVer -PackageVersionPrereleaseTag $version.PrereleaseTag -ReleaseNotes $releaseNotes -CommitSha $version.Sha
+        ./build/package.ps1 -PackageVersionNuGet $version.NuGetVersionV2 -PackageVersionMajorMinorPatchBuild $version.AssemblySemVer -PackageVersionPrereleaseTag $version.PrereleaseTag -ReleaseNotes $releaseNotes -CommitSha $version.Sha
     - name: Upload PSGallery package
       uses: actions/upload-artifact@v3
       with:
@@ -174,7 +174,7 @@ jobs:
         path: ./out/
     - name: Test with Pester
       shell: pwsh
-      run: ./scripts/test.ps1 -UsePackageExport
+      run: ./build/test.ps1 -UsePackageExport
     - name: Upload test results
       uses: actions/upload-artifact@v3
       with:
@@ -208,7 +208,7 @@ jobs:
         path: ./out/
     - name: Test with Pester
       shell: pwsh
-      run: ./scripts/test.ps1 -UsePackageExport
+      run: ./build/test.ps1 -UsePackageExport
     - name: Upload test results
       uses: actions/upload-artifact@v3
       with:
@@ -242,7 +242,7 @@ jobs:
         path: ./out/
     - name: Test with Pester
       shell: pwsh
-      run: ./scripts/test.ps1 -UsePackageExport -NoFail
+      run: ./build/test.ps1 -UsePackageExport -NoFail
     - name: Upload test results
       uses: actions/upload-artifact@v3
       with:
