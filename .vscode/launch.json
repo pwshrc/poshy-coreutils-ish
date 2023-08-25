@@ -8,7 +8,10 @@
           "name": "PowerShell: Run Pester Tests",
           "type": "PowerShell",
           "request": "launch",
-          "script": "./scripts/test.ps1",
+          "script": "./build/test.ps1",
+          "args": [
+              "-UsePackageExport",
+          ],
           "createTemporaryIntegratedConsole": true,
           "attachDotnetDebugger": true
       }
