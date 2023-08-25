@@ -1,3 +1,6 @@
+#!/usr/bin/env pwsh
+$ErrorActionPreference = "Stop"
+Set-StrictMode -Version Latest
 
 
 function Import-PSGalleryModuleNested {
@@ -21,6 +24,7 @@ function Import-PSGalleryModuleNested {
         [Parameter(Mandatory = $false)]
         [switch] $SkipAlreadyLoaded
     )
+    [string] $ds = [System.IO.Path]::DirectorySeparatorChar
     [PSModuleInfo[]] $modulesLoaded = @()
     if ($id -and $version) {
         if ($SkipAlreadyLoaded -and (Get-Module -Name $id -ErrorAction SilentlyContinue)) {
@@ -47,7 +51,6 @@ function Import-PSGalleryModuleNested {
             throw "Either or both of '-RuntimeDependencies' and '-DevelopmentDependencies' must be specified when not loading a specific individual module."
         }
 
-        [string] $ds = [System.IO.Path]::DirectorySeparatorChar
         [string] $projectRoot = Resolve-Path -Path "$PSScriptRoot${ds}..${ds}.."
         if (-not (Test-Path "${projectRoot}${ds}lib" -PathType Container -ErrorAction SilentlyContinue)) {
             throw "Could not find folder 'lib' at '$projectRoot'. Did you forget to 'restore'?"

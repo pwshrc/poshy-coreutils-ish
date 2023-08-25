@@ -24,8 +24,8 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
 
-& "${PSScriptRoot}${ds}restore.ps1"
 [string] $ds = [System.IO.Path]::DirectorySeparatorChar
+& "${PSScriptRoot}${ds}restore.ps1"
 [string[]] $authors = @(
     "Pwshrc Maintainers"
 )
