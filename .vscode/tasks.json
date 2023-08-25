@@ -6,7 +6,10 @@
       {
           "label": "Run Pester Tests",
           "type": "shell",
-          "command": "./scripts/test.ps1"
+          "command": "./build/test.ps1",
+          "args": [
+              "-UsePackageExport",
+          ],
       }
   ]
 }
