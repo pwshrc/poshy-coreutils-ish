@@ -23,6 +23,8 @@ param(
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
+
+& "${PSScriptRoot}${ds}restore.ps1"
 [string] $ds = [System.IO.Path]::DirectorySeparatorChar
 [string[]] $authors = @(
     "Pwshrc Maintainers"
@@ -38,24 +40,27 @@ Set-StrictMode -Version Latest
 [bool] $PSEdition_Desktop = $true
 [bool] $PSEdition_Core = $true
 
-
-. "${PSScriptRoot}${ds}lib${ds}Get-PackageSynopsis.ps1"
+. "${PSScriptRoot}${ds}funcs${ds}Get-PackageSynopsis.ps1"
 [string] $packageSynopsis = Get-PackageSynopsis
 
-. "${PSScriptRoot}${ds}lib${ds}Get-ModuleExports.ps1"
+. "${PSScriptRoot}${ds}funcs${ds}Get-ModuleExports.ps1"
 [hashtable] $moduleExports = Get-ModuleExports -Psm1Path "${PSScriptRoot}${ds}..${ds}src${ds}${PackageId}.psm1"
 
-. "${PSScriptRoot}${ds}lib${ds}Get-PackageTags.ps1"
+. "${PSScriptRoot}${ds}funcs${ds}Get-PackageTags.ps1"
 [string[]] $packageTagsForNuSpec = Get-PackageTags -PackageId $PackageId -ForNuSpec -ModuleExports $moduleExports -PSEdition_Desktop:$PSEdition_Desktop -PSEdition_Core:$PSEdition_Core
 [string[]] $packageTagsForPSData = Get-PackageTags -ForPSData
 
-. "${PSScriptRoot}${ds}lib${ds}Get-PackageCopyright.ps1"
+. "${PSScriptRoot}${ds}funcs${ds}Get-PackageCopyright.ps1"
 [string] $packageCopyright = Get-PackageCopyright -LicenseFilePath $licenseFilePath
 
-. "${PSScriptRoot}${ds}lib${ds}Get-PackageGuid.ps1"
+. "${PSScriptRoot}${ds}funcs${ds}Get-PackageGuid.ps1"
 [string] $packageGuid = Get-PackageGuid
 
-. "${PSScriptRoot}${ds}lib${ds}New-ModuleManifestCustomized.ps1"
+. "${PSScriptRoot}${ds}funcs${ds}Get-PSGalleryModuleNested.ps1"
+[object[]] $nestedRuntimePSGalleryModules = @(Get-PSGalleryModuleNested -RuntimeDependencies)
+[string] $packageVersion = $PackageVersionNuGet
+
+. "${PSScriptRoot}${ds}funcs${ds}New-ModuleManifestCustomized.ps1"
 [System.IO.FileInfo] $moduleManifest = New-ModuleManifestCustomized `
     -PackageId $PackageId `
     -CompanyName $companyName `
@@ -70,16 +75,19 @@ Set-StrictMode -Version Latest
     -PackageCopyright $packageCopyright `
     -PackageTags $packageTagsForNuSpec `
     -ReleaseNotes $ReleaseNotes `
+    -PackageVersion $packageVersion `
     -PackageVersionMajorMinorPatchBuild $PackageVersionMajorMinorPatchBuild `
     -PackageVersionPrereleaseTag $PackageVersionPrereleaseTag `
     -PackageGuid $packageGuid `
     -PSEdition_Desktop:$PSEdition_Desktop `
-    -PSEdition_Core:$PSEdition_Core
+    -PSEdition_Core:$PSEdition_Core `
+    -NestedRuntimePSGalleryModules $nestedRuntimePSGalleryModules `
+    -PathFromPsd1ParentToPsm1Parent ".${ds}src" # The psd1 will go into the root of the NuPkg, but the psm1 will stay in the `src` folder.
 
-. "${PSScriptRoot}${ds}lib${ds}New-TemporaryProjectFile.ps1"
+. "${PSScriptRoot}${ds}funcs${ds}New-TemporaryProjectFile.ps1"
 [System.IO.FileInfo] $projectFile = New-TemporaryProjectFile `
     -PackageId $PackageId `
-    -PackageVersion $PackageVersionNuGet `
+    -PackageVersion $packageVersion `
     -CompanyName $companyName `
     -Authors $authors `
     -GitRepositoryUrl $repositoryGitUrl `
@@ -92,7 +100,9 @@ Set-StrictMode -Version Latest
     -PackageCopyright $packageCopyright `
     -PackageTags $packageTagsForPSData `
     -ReleaseNotes $ReleaseNotes `
-    -ModuleManifest $moduleManifest
+    -ModuleManifest $moduleManifest `
+    -ModuleManifestPackageDir "." `
+    -NestedRuntimePSGalleryModules $nestedRuntimePSGalleryModules
 try {
     dotnet pack -c Release -o "${PSScriptRoot}${ds}..${ds}out" $projectFile.FullName
 }
