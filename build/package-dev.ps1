@@ -33,7 +33,7 @@ if (-not $PackageVersionPrereleaseTag) {
     $PackageVersionPrereleaseTag = "dev-" + $PackageVersionPrereleaseTag
 }
 
-$ds = [System.IO.Path]::DirectorySeparatorChar
+[string] $ds = [System.IO.Path]::DirectorySeparatorChar
 & "${PSScriptRoot}${ds}package.ps1" `
     -PackageVersionNuGet $PackageVersionNuGet `
     -PackageVersionMajorMinorPatchBuild $PackageVersionMajorMinorPatchBuild `
