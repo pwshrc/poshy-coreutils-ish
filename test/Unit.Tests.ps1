@@ -5,7 +5,7 @@ Set-StrictMode -Version Latest
 
 Describe "module" {
     It "should be importable" {
-        $module = Import-Module $Global:SubjectModuleName -Force -DisableNameChecking -PassThru
+        [PSModuleInfo] $module = Import-Module $Global:SubjectModule -Force -DisableNameChecking -PassThru
 
         $module | Should -Not -BeNull
     }
