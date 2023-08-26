@@ -113,7 +113,6 @@ function New-TemporaryProjectFile {
         "PackageRequireLicenseAcceptance" = "false"
         "AdditionalRestoreSources" = "`$(AdditionalRestoreSources);${psgalleryNugetFeed}"
         "EnablePackInference" = "false"
-
     }
     if (-not [string]::IsNullOrWhiteSpace($ReleaseNotes)) {
         $properties["PackageReleaseNotes"] = $ReleaseNotes
