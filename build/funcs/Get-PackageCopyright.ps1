@@ -9,6 +9,7 @@ function Get-PackageCopyright {
         [ValidateScript({ Test-Path -Path $_ -ErrorAction SilentlyContinue })]
         [string] $LicenseFilePath
     )
+
     if (-not (Test-Path -Path $LicenseFilePath -ErrorAction SilentlyContinue)) {
         throw "The file '${LicenseFilePath}' does not exist."
     }

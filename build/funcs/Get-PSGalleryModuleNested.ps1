@@ -19,10 +19,12 @@ function Get-PSGalleryModuleNested {
         [ValidateNotNullOrEmpty()]
         [string] $version
     )
+
     if ((-not $RuntimeDependencies) -and (-not $DevelopmentDependencies) -and (-not $id)) {
         throw "Either or both of '-RuntimeDependencies' and '-DevelopmentDependencies' must be specified when not getting a specific individual module."
     }
 
+    [string] $ds = [System.IO.Path]::DirectorySeparatorChar
     [string] $packagesConfigFile = "${PSScriptRoot}${ds}..${ds}..${ds}packages.PSGallery.config"
 
     [xml] $packagesConfig = [xml](Get-Content -Raw -Path $packagesConfigFile -Encoding UTF8)

@@ -88,6 +88,8 @@ function New-ModuleManifestCustomized {
         [Parameter(Mandatory = $false)]
         [string] $PathFromPsd1ParentToPsm1Parent = "."
     )
+
+    [string] $ds = [System.IO.Path]::DirectorySeparatorChar
     [hashtable] $additionNewModuleManifestArgs = @{}
     if (-not [string]::IsNullOrWhiteSpace($PackageVersionPrereleaseTag)) {
         $additionNewModuleManifestArgs["Prerelease"] = $PackageVersionPrereleaseTag

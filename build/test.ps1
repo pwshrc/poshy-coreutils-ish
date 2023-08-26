@@ -13,6 +13,7 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
 
+[string] $ds = [System.IO.Path]::DirectorySeparatorChar
 [string] $moduleLocation = $null
 [string] $moduleName = $null
 
