@@ -13,18 +13,23 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
-      - name: Setup PowerShell module cache
+      - name: "Cache: Nested PSGallery Modules"
         id: cacher
         uses: actions/cache@v3
         with:
-          path: "~/.local/share/powershell/Modules"
-          key: ${{ runner.os }}-PSScriptAnalyzer
-      - name: Install Modules from PSGallery
+          path: ./lib
+          key: lib-PSGallery-${{ hashFiles('./NuGet.PSGallery.config', './packages.PSGallery.config') }}
+      - name: Install NuGet
+        uses: nuget/setup-nuget@v1.2.0
+        if: steps.cacher.outputs.cache-hit != 'true'
+        with:
+          nuget-version: '6.x'
+      - name: Restore Nested PSGallery Modules
         if: steps.cacher.outputs.cache-hit != 'true'
         shell: pwsh
         run: |
           Set-PSRepository PSGallery -InstallationPolicy Trusted
-          Install-Module PSScriptAnalyzer -ErrorAction Stop
+          ./build/restore.ps1
       - name: Lint with PSScriptAnalyzer
         shell: pwsh
         run: ./build/lint.ps1 -NoFail
@@ -118,6 +123,23 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v3
+    - name: "Cache: Nested PSGallery Modules"
+      id: cacher
+      uses: actions/cache@v3
+      with:
+        path: ./lib
+        key: lib-PSGallery-${{ hashFiles('./NuGet.PSGallery.config', './packages.PSGallery.config') }}
+    - name: Install NuGet
+      uses: nuget/setup-nuget@v1.2.0
+      if: steps.cacher.outputs.cache-hit != 'true'
+      with:
+        nuget-version: '6.x'
+    - name: Restore Nested PSGallery Modules
+      if: steps.cacher.outputs.cache-hit != 'true'
+      shell: pwsh
+      run: |
+        Set-PSRepository PSGallery -InstallationPolicy Trusted
+        ./build/restore.ps1
     - name: Download version.json
       uses: actions/download-artifact@v2
       with:
@@ -155,18 +177,23 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v3
-    - name: Setup PowerShell module cache
+    - name: "Cache: Nested PSGallery Modules"
       id: cacher
       uses: actions/cache@v3
       with:
-        path: "~/.local/share/powershell/Modules"  # See: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-powershell#powershell-module-locations
-        key: ${{ runner.os }}-Pester
-    - name: Install Modules from PSGallery
+        path: ./lib
+        key: lib-PSGallery-${{ hashFiles('./NuGet.PSGallery.config', './packages.PSGallery.config') }}
+    - name: Install NuGet
+      uses: nuget/setup-nuget@v1.2.0
+      if: steps.cacher.outputs.cache-hit != 'true'
+      with:
+        nuget-version: '6.x'
+    - name: Restore Nested PSGallery Modules
       if: steps.cacher.outputs.cache-hit != 'true'
       shell: pwsh
       run: |
         Set-PSRepository PSGallery -InstallationPolicy Trusted
-        Install-Module Pester -ErrorAction Stop
+        ./build/restore.ps1
     - name: Download PSGallery package
       uses: actions/download-artifact@v2
       with:
@@ -189,18 +216,23 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v3
-    - name: Setup PowerShell module cache
+    - name: "Cache: Nested PSGallery Modules"
       id: cacher
       uses: actions/cache@v3
       with:
-        path: "C:\\Users\\runneradmin\\Documents\\PowerShell\\Modules"  # See: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-powershell#powershell-module-locations
-        key: ${{ runner.os }}-Pester
-    - name: Install Modules from PSGallery
+        path: ./lib
+        key: lib-PSGallery-${{ hashFiles('./NuGet.PSGallery.config', './packages.PSGallery.config') }}
+    - name: Install NuGet
+      uses: nuget/setup-nuget@v1.2.0
+      if: steps.cacher.outputs.cache-hit != 'true'
+      with:
+        nuget-version: '6.x'
+    - name: Restore Nested PSGallery Modules
       if: steps.cacher.outputs.cache-hit != 'true'
       shell: pwsh
       run: |
         Set-PSRepository PSGallery -InstallationPolicy Trusted
-        Install-Module Pester -ErrorAction Stop
+        ./build/restore.ps1
     - name: Download PSGallery package
       uses: actions/download-artifact@v2
       with:
@@ -223,18 +255,23 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v3
-    - name: Setup PowerShell module cache
+    - name: "Cache: Nested PSGallery Modules"
       id: cacher
       uses: actions/cache@v3
       with:
-        path: "/Users/runner/.local/share/powershell/Modules"  # See: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-powershell#powershell-module-locations
-        key: ${{ runner.os }}-Pester
-    - name: Install Modules from PSGallery
+        path: ./lib
+        key: lib-PSGallery-${{ hashFiles('./NuGet.PSGallery.config', './packages.PSGallery.config') }}
+    - name: Install NuGet
+      uses: nuget/setup-nuget@v1.2.0
+      if: steps.cacher.outputs.cache-hit != 'true'
+      with:
+        nuget-version: '6.x'
+    - name: Restore Nested PSGallery Modules
       if: steps.cacher.outputs.cache-hit != 'true'
       shell: pwsh
       run: |
         Set-PSRepository PSGallery -InstallationPolicy Trusted
-        Install-Module Pester -ErrorAction Stop
+        ./build/restore.ps1
     - name: Download PSGallery package
       uses: actions/download-artifact@v2
       with:
