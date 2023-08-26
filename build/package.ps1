@@ -105,6 +105,9 @@ Set-StrictMode -Version Latest
     -NestedRuntimePSGalleryModules $nestedRuntimePSGalleryModules
 try {
     dotnet pack -c Release -o "${PSScriptRoot}${ds}..${ds}out" $projectFile.FullName
+    if ($LASTEXITCODE -ne 0) {
+        throw "`dotnet pack` failed, exit code '$LASTEXITCODE'."
+    }
 }
 finally {
     Remove-Item -LiteralPath $projectFile.FullName -Force

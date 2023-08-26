@@ -112,6 +112,8 @@ function New-TemporaryProjectFile {
         "PackageTags" = ($PackageTags -join " ")
         "PackageRequireLicenseAcceptance" = "false"
         "AdditionalRestoreSources" = "`$(AdditionalRestoreSources);${psgalleryNugetFeed}"
+        "EnablePackInference" = "false"
+
     }
     if (-not [string]::IsNullOrWhiteSpace($ReleaseNotes)) {
         $properties["PackageReleaseNotes"] = $ReleaseNotes
@@ -132,10 +134,10 @@ function New-TemporaryProjectFile {
     if ($NestedRuntimePSGalleryModules) {
         $itemGroupElementsForNestedRuntimePSGalleryModules += @(
             $NestedRuntimePSGalleryModules | ForEach-Object {
-                [System.Xml.XmlElement] $element = $propertyGroupElement.OwnerDocument.CreateElement("None")
+                [System.Xml.XmlElement] $element = $propertyGroupElement.OwnerDocument.CreateElement("PackageFile")
                 $element.SetAttribute("Include", "lib${ds}$($_.id).$($_.version)${ds}**${ds}*.*")
                 $element.SetAttribute("Pack", "true")
-                $element.SetAttribute("PackagePath", "lib${ds}$($_.id).$($_.version)${ds}")
+                $element.SetAttribute("PackagePath", "lib${ds}$($_.id).$($_.version)${ds}%(RelativeDir)%(Filename)%(Extension)")
                 $element
             }
         )
@@ -149,19 +151,20 @@ function New-TemporaryProjectFile {
         <PackageReference Include=`"NuGetizer`" Version=`"${nugetizerVersion}`" /> <!-- Pin to avoid SponsorLink -->
     </ItemGroup>
     <ItemGroup>
-        <None Include=`"src${ds}**${ds}*.*`" Pack=`"true`" />
-        <None Include=`"${LicenseFileName}`" Pack=`"true`" />
-        <None Include=`"${ReadmeFileName}`" Pack=`"true`" />
-        <None Include=`"${iconPath}`" Pack=`"true`" PackagePath=`"${iconFileName}`" />
-        <None Include=`"${moduleManifestFilePath}`" Pack=`"true`" PackagePath=`"${moduleManifestFilePackagePath}`" />
-        <None Remove=`"lib${ds}**${ds}*.*`" />
-        $($itemGroupElementsForNestedRuntimePSGalleryModules | ForEach-Object { $_.OuterXml })
-        <None Remove=`"lib${ds}**${ds}README.*`" />
-        <None Remove=`"lib${ds}**${ds}*.nupkg`" />
-    </ItemGroup>
-    <ItemGroup>
         <Content Remove=`"**${ds}*.*`" />
     </ItemGroup>
+    <ItemGroup>
+        <None Remove=`"**${ds}*.*`" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageFile Include=`"src${ds}**${ds}*.*`" Pack=`"true`" PackagePath=`"src${ds}%(RelativeDir)%(Filename)%(Extension)`" />
+        <PackageFile Include=`"${LicenseFileName}`" Pack=`"true`" PackagePath=`"${LicenseFileName}`" />
+        <PackageFile Include=`"${ReadmeFileName}`" Pack=`"true`" PackagePath=`"${ReadmeFileName}`" />
+        <PackageFile Include=`"${iconPath}`" Pack=`"true`" PackagePath=`"${iconFileName}`" />
+        <PackageFile Include=`"${moduleManifestFilePath}`" Pack=`"true`" PackagePath=`"${moduleManifestFilePackagePath}`" />
+        $($itemGroupElementsForNestedRuntimePSGalleryModules | ForEach-Object { $_.OuterXml })
+    </ItemGroup>
+
 </Project>"
     return Get-Item -Path $projectFile
 }

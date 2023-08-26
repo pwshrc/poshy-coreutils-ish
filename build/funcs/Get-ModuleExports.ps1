@@ -19,23 +19,32 @@ function Get-ModuleExports {
         "DscResources" = @()
         "FormatFiles" = @()
     }
+    [bool] $madeGlobalVariable = $false
+    if (-not (Get-Variable -Name PWSHRC_FORCE_MODULES_EXPORT_UNSUPPORTED -Scope Global -ErrorAction SilentlyContinue)) {
+        $madeGlobalVariable = $true
+        Set-Variable -Name PWSHRC_FORCE_MODULES_EXPORT_UNSUPPORTED -Value $true -Scope Global -Option ReadOnly -Force
+    }
     try {
-        Set-Variable -Name PWSHRC_FORCE_MODULES_EXPORT_UNSUPPORTED -Value $true -Scope Global -Option ReadOnly
-        [System.Management.Automation.PSModuleInfo] $moduleInfo = Import-Module -Name $Psm1Path -Force -DisableNameChecking -PassThru
-        if ($null -eq $moduleInfo) {
-            throw "Failed to import module from path '$Psm1Path'."
+        try {
+            [System.Management.Automation.PSModuleInfo] $moduleInfo = Import-Module -Name $Psm1Path -Force -DisableNameChecking -PassThru
+            if ($null -eq $moduleInfo) {
+                throw "Failed to import module from path '$Psm1Path'."
+            }
+            $results["Functions"] += @($moduleInfo.ExportedFunctions.Keys)
+            $results["Cmdlets"] += @($moduleInfo.ExportedCmdlets.Keys)
+            $results["Commands"] += @($moduleInfo.ExportedCommands.Keys)
+            $results["Aliases"] += @($moduleInfo.ExportedAliases.Keys)
+            $results["Variables"] += @($moduleInfo.ExportedVariables.Keys)
+            $results["DscResources"] += @($moduleInfo.ExportedDscResources)
+            $results["FormatFiles"] += @($moduleInfo.ExportedFormatFiles)
+        } finally {
+            if ($null -ne $moduleInfo) {
+                $moduleInfo | Remove-Module -Force
+            }
         }
-        $results["Functions"] += @($moduleInfo.ExportedFunctions.Keys)
-        $results["Cmdlets"] += @($moduleInfo.ExportedCmdlets.Keys)
-        $results["Commands"] += @($moduleInfo.ExportedCommands.Keys)
-        $results["Aliases"] += @($moduleInfo.ExportedAliases.Keys)
-        $results["Variables"] += @($moduleInfo.ExportedVariables.Keys)
-        $results["DscResources"] += @($moduleInfo.ExportedDscResources)
-        $results["FormatFiles"] += @($moduleInfo.ExportedFormatFiles)
     } finally {
-        Remove-Variable -Name PWSHRC_FORCE_MODULES_EXPORT_UNSUPPORTED -Scope Global -ErrorAction SilentlyContinue
-        if ($null -ne $moduleInfo) {
-            $moduleInfo | Remove-Module -Force
+        if ($madeGlobalVariable) {
+            Remove-Variable -Name PWSHRC_FORCE_MODULES_EXPORT_UNSUPPORTED -Scope Global -Force
         }
     }
 
