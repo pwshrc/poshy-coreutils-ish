@@ -160,7 +160,7 @@ function New-TemporaryProjectFile {
         <None Remove=`"lib${ds}**${ds}*.nupkg`" />
     </ItemGroup>
     <ItemGroup>
-        <Content Remove=`"**/*.*`" />
+        <Content Remove=`"**${ds}*.*`" />
     </ItemGroup>
 </Project>"
     return Get-Item -Path $projectFile
