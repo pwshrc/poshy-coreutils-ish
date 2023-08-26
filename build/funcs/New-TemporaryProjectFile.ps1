@@ -149,14 +149,15 @@ function New-TemporaryProjectFile {
         <PackageReference Include=`"NuGetizer`" Version=`"${nugetizerVersion}`" /> <!-- Pin to avoid SponsorLink -->
     </ItemGroup>
     <ItemGroup>
+        <None Include=`"src${ds}**${ds}*.*`" Pack=`"true`" />
         <None Include=`"${LicenseFileName}`" Pack=`"true`" />
         <None Include=`"${ReadmeFileName}`" Pack=`"true`" />
         <None Include=`"${iconPath}`" Pack=`"true`" PackagePath=`"${iconFileName}`" />
         <None Include=`"${moduleManifestFilePath}`" Pack=`"true`" PackagePath=`"${moduleManifestFilePackagePath}`" />
-        <None Remove=`"lib/**/*.*`" />
+        <None Remove=`"lib${ds}**${ds}*.*`" />
         $($itemGroupElementsForNestedRuntimePSGalleryModules | ForEach-Object { $_.OuterXml })
-        <None Remove=`"lib/**/README.*`" />
-        <None Remove=`"lib/**/*.nupkg`" />
+        <None Remove=`"lib${ds}**${ds}README.*`" />
+        <None Remove=`"lib${ds}**${ds}*.nupkg`" />
     </ItemGroup>
     <ItemGroup>
         <Content Remove=`"**/*.*`" />
