@@ -137,7 +137,7 @@ function New-TemporaryProjectFile {
                 [System.Xml.XmlElement] $element = $propertyGroupElement.OwnerDocument.CreateElement("PackageFile")
                 $element.SetAttribute("Include", "lib${ds}$($_.id).$($_.version)${ds}**${ds}*.*")
                 $element.SetAttribute("Pack", "true")
-                $element.SetAttribute("PackagePath", "lib${ds}$($_.id).$($_.version)${ds}%(RelativeDir)%(Filename)%(Extension)")
+                $element.SetAttribute("PackagePath", "%(RelativeDir)%(Filename)%(Extension)")
                 $element
             }
         )
@@ -157,7 +157,7 @@ function New-TemporaryProjectFile {
         <None Remove=`"**${ds}*.*`" />
     </ItemGroup>
     <ItemGroup>
-        <PackageFile Include=`"src${ds}**${ds}*.*`" Pack=`"true`" PackagePath=`"src${ds}%(RelativeDir)%(Filename)%(Extension)`" />
+        <PackageFile Include=`"src${ds}**${ds}*.*`" Pack=`"true`" PackagePath=`"%(RelativeDir)%(Filename)%(Extension)`" />
         <PackageFile Include=`"${LicenseFileName}`" Pack=`"true`" PackagePath=`"${LicenseFileName}`" />
         <PackageFile Include=`"${ReadmeFileName}`" Pack=`"true`" PackagePath=`"${ReadmeFileName}`" />
         <PackageFile Include=`"${iconPath}`" Pack=`"true`" PackagePath=`"${iconFileName}`" />
