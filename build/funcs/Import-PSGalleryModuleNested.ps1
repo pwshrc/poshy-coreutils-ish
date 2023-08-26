@@ -24,6 +24,7 @@ function Import-PSGalleryModuleNested {
         [Parameter(Mandatory = $false)]
         [switch] $SkipAlreadyLoaded
     )
+
     [string] $ds = [System.IO.Path]::DirectorySeparatorChar
     [PSModuleInfo[]] $modulesLoaded = @()
     if ($id -and $version) {

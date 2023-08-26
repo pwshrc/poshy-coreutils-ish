@@ -74,6 +74,7 @@ function New-TemporaryProjectFile {
         [object[]] $NestedRuntimePSGalleryModules = @()
     )
 
+    [string] $ds = [System.IO.Path]::DirectorySeparatorChar
     function Get-IconPath {
         [string] $packageIconLocalPath = "${PSScriptRoot}${ds}..${ds}..${ds}out${ds}icon.jpeg"
         Invoke-WebRequest -Uri $PackageIconUrl -OutFile $packageIconLocalPath | Out-Null

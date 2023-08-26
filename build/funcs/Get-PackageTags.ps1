@@ -45,6 +45,7 @@ function Get-PackageTags {
         [switch] $AllowEmpty
     )
 
+    [string] $ds = [System.IO.Path]::DirectorySeparatorChar
     [string] $tagsFile = "${PSScriptRoot}${ds}..${ds}..${ds}.info${ds}tags.txt"
     if (-not (Test-Path $tagsFile -ErrorAction SilentlyContinue)) {
         Write-Error "The file '${tagsFile}' does not exist."

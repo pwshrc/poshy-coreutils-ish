@@ -4,6 +4,7 @@ Set-StrictMode -Version Latest
 
 
 function Get-PackageGuid {
+    [string] $ds = [System.IO.Path]::DirectorySeparatorChar
     [string] $GuidFilePath = "${PSScriptRoot}${ds}..${ds}..${ds}.info${ds}guid.txt"
     if (-not (Test-Path -Path $GuidFilePath -ErrorAction SilentlyContinue)) {
         throw "The file '${GuidFilePath}' does not exist."

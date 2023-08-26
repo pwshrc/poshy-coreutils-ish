@@ -10,6 +10,7 @@ function Get-PackageSynopsis {
         [switch] $AllowEmpty
     )
 
+    [string] $ds = [System.IO.Path]::DirectorySeparatorChar
     [string] $synopsisFilePath = "${PSScriptRoot}${ds}..${ds}..${ds}.info${ds}synopsis.txt"
     if (-not (Test-Path -Path $synopsisFilePath -ErrorAction SilentlyContinue)) {
         Write-Error "The file '${synopsisFilePath}' does not exist."
