@@ -163,6 +163,9 @@ function New-TemporaryProjectFile {
         <PackageFile Include=`"${moduleManifestFilePath}`" Pack=`"true`" PackagePath=`"${moduleManifestFilePackagePath}`" />
         $($itemGroupElementsForNestedRuntimePSGalleryModules | ForEach-Object { $_.OuterXml })
     </ItemGroup>
+    <ItemGroup>
+        <PackageFile Remove=`"**${ds}*.nupkg`" />
+    </ItemGroup>
 
 </Project>"
     return Get-Item -Path $projectFile
