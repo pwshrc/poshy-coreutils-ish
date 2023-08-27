@@ -141,6 +141,10 @@ function New-ModuleManifestCustomized {
         )
     }
 
+    . "${PSScriptRoot}${ds}Get-RequiredPwshVersion.ps1"
+    [version] $requiredPwshVersion = $null
+    $requiredPwshVersion = Get-RequiredPwshVersion
+
     # This is just where we write the psd1 _for now_.
     # The project file generated later will decide where in the NuPkg it goes (and therefor where it lands when the NuPkg is expanded.)
     [string] $moduleManifestPath = "${PSScriptRoot}${ds}..${ds}..${ds}out${ds}${PackageId}.psd1"
@@ -161,7 +165,7 @@ function New-ModuleManifestCustomized {
         -LicenseUri "${ProjectUrlAtVersion}/${LicenseFileName}" `
         -ProjectUri $ProjectUrl `
         -IconUri $PackageIconUrl `
-        -PowerShellVersion "7.0" `
+        -PowerShellVersion $requiredPwshVersion.ToString() `
         -NestedModules $nestedModules `
         @additionNewModuleManifestArgs
 

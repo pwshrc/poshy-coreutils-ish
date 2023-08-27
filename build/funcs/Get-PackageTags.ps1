@@ -51,7 +51,8 @@ function Get-PackageTags {
         Write-Error "The file '${tagsFile}' does not exist."
         return
     }
-    [string[]] $tags = ((Get-Content -Path $tagsFile -Encoding UTF8 | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrEmpty($_) }))
+    [string[]] $tags = @()
+    $tags = ((Get-Content -Path $tagsFile -Encoding UTF8 | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrEmpty($_) }))
 
     if ((-not $tags) -and (-not $ForNuSpec)) {
         if ($AllowEmpty) {
@@ -83,8 +84,9 @@ function Get-PackageTags {
             $tags += @("PSIncludes_DscResource")
             $tags += @($ModuleExports["DscResources"] | ForEach-Object { "PSDscResource_${_}" })
         }
-        [System.IO.FileInfo[]] $roleCapabilityFiles = @(Get-ChildItem -Path "${PSScriptRoot}${ds}..${ds}..${ds}" -Filter "*.psrc" -Recurse -File -Force -ErrorAction SilentlyContinue)
-        if ($roleCapabilityFiles.Count -gt 0) {
+        [System.IO.FileInfo[]] $roleCapabilityFiles = @()
+        $roleCapabilityFiles = @(Get-ChildItem -Path "${PSScriptRoot}${ds}..${ds}..${ds}" -Filter "*.psrc" -Recurse -File -Force -ErrorAction SilentlyContinue)
+        if ($roleCapabilityFiles) {
             [string[]] $roleCapabilities = $roleCapabilityFiles | ForEach-Object { $_.Name.Replace(".psrc", "") }
             $tags += @("PSIncludes_RoleCapability")
             $tags += @($roleCapabilities | ForEach-Object { "PSRoleCapability_$_" })

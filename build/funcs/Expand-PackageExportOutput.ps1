@@ -15,7 +15,8 @@ function Expand-PackageExportOutput {
     [string] $psgalleryNupkgFullname = $null
 
     # Find the NuPkg.
-    [System.IO.FileInfo[]] $outputPsgalleryNupkgs = @(Get-ChildItem -Path $out -Filter "*.nupkg" -Recurse -File -Force)
+    [System.IO.FileInfo[]] $outputPsgalleryNupkgs = @()
+    $outputPsgalleryNupkgs = @(Get-ChildItem -Path $out -Filter "*.nupkg" -Recurse -File -Force)
     if ($outputPsgalleryNupkgs.Count -eq 0) {
         throw "No nupkg files were found in '$out'. Did you forgot to build?"
     } elseif ($outputPsgalleryNupkgs.Count -gt 1) {
@@ -37,7 +38,8 @@ function Expand-PackageExportOutput {
 
     # Find the psd1 file that matches the NuPkg.
     Write-Information "Determining the psd1 file that matches '$psgalleryNupkgName'."
-    [System.IO.FileInfo] $psd1 = `
+    [System.IO.FileInfo] $psd1 = $null
+    $psd1 = `
         Get-ChildItem -Path $moduleLocation -Filter "*.psd1" -Recurse -File -Force `
         | Sort-Object -Property FullName `
         | Where-Object {
@@ -56,7 +58,8 @@ function Expand-PackageExportOutput {
 
     # Move the expanded NuPkg to the psd1's name, which is a requirement before it can be imported.
     Write-Information "Renaming folder '$moduleLocation' to match the module name."
-    [string] $newModuleLocation = Join-Path -Path (Split-Path $moduleLocation -Parent) -ChildPath $psd1.BaseName
+    [string] $newModuleLocation = $null
+    $newModuleLocation = Join-Path -Path (Split-Path $moduleLocation -Parent) -ChildPath $psd1.BaseName
     if (Test-Path $newModuleLocation -ErrorAction SilentlyContinue) {
         Remove-Item -Path $newModuleLocation -Recurse -Force | Out-Null
     }

@@ -1,5 +1,8 @@
 #!/usr/bin/env pwsh
-# Take all the PowerShell module content in ../src and package it as a NuPkg. But only for local development purposes.
+<#
+.SYNOPSIS
+    Take all the PowerShell module content in ../src and package it as a NuPkg. (But only for local development purposes.)
+#>
 param(
 )
 $ErrorActionPreference = "Stop"
