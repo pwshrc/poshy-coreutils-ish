@@ -4,12 +4,34 @@
   "version": "2.0.0",
   "tasks": [
       {
-          "label": "Run Pester Tests",
-          "type": "shell",
-          "command": "./build/test.ps1",
-          "args": [
-              "-UsePackageExport",
-          ],
+        "label": "Clean Module Build Artifacts",
+        "type": "shell",
+        "command": "./build/clean.ps1",
+        "args": []
+      },
+      {
+        "label": "Restore Module Dependencies",
+        "type": "shell",
+        "command": "./build/restore.ps1",
+        "args": []
+      },
+      {
+        "label": "Lint Module",
+        "type": "shell",
+        "command": "./build/lint.ps1",
+        "args": []
+      },
+      {
+        "label": "Package Module (Development)",
+        "type": "shell",
+        "command": "./build/package-dev.ps1",
+        "args": []
+      },
+      {
+        "label": "Run Pester Tests",
+        "type": "shell",
+        "command": "./build/test.ps1",
+        "args": ["-UsePackageExport"]
       }
   ]
 }
