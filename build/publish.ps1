@@ -1,4 +1,8 @@
 #!/usr/bin/env pwsh
+<#
+.SYNOPSIS
+    Publishes the project to the PowerShell Gallery.
+#>
 param(
     [Parameter(Mandatory = $true)]
     [ValidateNotNullOrEmpty()]

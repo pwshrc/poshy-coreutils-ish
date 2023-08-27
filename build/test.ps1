@@ -1,4 +1,8 @@
 #!/usr/bin/env pwsh
+<#
+.SYNOPSIS
+    Runs the project's tests.
+#>
 param(
     [Parameter(Mandatory = $true, ParameterSetName = 'UseSrc')]
     [switch] $UseSrc,
@@ -6,95 +10,85 @@ param(
     [Parameter(Mandatory = $true, ParameterSetName = 'UsePackageExport')]
     [switch] $UsePackageExport,
 
-    [switch] $NoFail
-)
+    [switch] $NoFail,
 
+    [switch] $CI,
+
+    [string] $OutputFilesPrefix = ''
+)
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
 
+Set-Variable -Name TestsUsePackageExport -Value [bool]$UsePackageExport -Scope Global -Option ReadOnly -Force
 [string] $ds = [System.IO.Path]::DirectorySeparatorChar
 [string] $moduleLocation = $null
-[string] $moduleName = $null
 
 if ($UsePackageExport) {
     . "${PSScriptRoot}${ds}funcs${ds}Expand-PackageExportOutput.ps1"
     [System.IO.FileInfo] $psd1 = Expand-PackageExportOutput
 
     $moduleLocation = Split-Path -Path $psd1.FullName -Parent
-    $moduleName = $psd1.BaseName
 } else {
     $moduleLocation = "${PSScriptRoot}${ds}..${ds}src"
-    $moduleName = (Get-ChildItem -Path $moduleLocation -Filter *.psm1 -File -Force | Select-Object -First 1 -ExpandProperty BaseName)
     $moduleLocation = Resolve-Path $moduleLocation
 }
 
-[string] $OldPSModulePath = $env:PSModulePath
 try {
     . "${PSScriptRoot}${ds}funcs${ds}Import-PSGalleryModuleNested.ps1"
     Import-PSGalleryModuleNested -id 'Pester' -SkipAlreadyLoaded | Out-Null
 
-    [PSModuleInfo[]] $modulesToUnload = @()
-    try {
-        if (-not (Get-Command Invoke-Pester -ErrorAction SilentlyContinue)) {
-            throw "Invoke-Pester not found. Please ensure that PowerShell module 'Pester' is configured as a development dependency."
+    if (-not (Get-Command Invoke-Pester -ErrorAction SilentlyContinue)) {
+        throw "Invoke-Pester not found. Please ensure that PowerShell module 'Pester' is configured as a development dependency."
+    }
+
+    [string] $out = "${PSScriptRoot}${ds}..${ds}out"
+    $pesterConfig = New-PesterConfiguration @{
+        Run = @{
+            Path = "${PSScriptRoot}${ds}..${ds}test"
+            Throw = $false  # We'll handle NoFail-or-not ourselves, when we handle the results.
+            PassThru = $true
         }
-
-        [string] $out = "${PSScriptRoot}${ds}..${ds}out"
-        $pesterConfig = New-PesterConfiguration @{
-            Run = @{
-                Path = "${PSScriptRoot}${ds}..${ds}test"
-                Throw = (-not $NoFail)
-                PassThru = $true
-            }
-            TestResult = @{
-                Enabled = $true
-                OutputPath = "${out}${ds}test-results.xml"
-                OutputFormat = "NUnit3"
-            }
-            CodeCoverage = @{
-                Enabled = $true
-                OutputPath = "${out}${ds}test-coverage.xml"
-                OutputFormat = "JaCoCo"
-                Path = $moduleLocation
-                RecursePaths = $true
-            }
+        TestResult = @{
+            Enabled = $true
+            OutputPath = "${out}${ds}${OutputFilesPrefix}test-results.xml"
+            OutputFormat = "NUnit3"
         }
-
-        if ($UseSrc) {
-            $modulesToUnload += @(Import-PSGalleryModuleNested -RuntimeDependencies)
+        CodeCoverage = @{
+            Enabled = $true
+            OutputPath = "${out}${ds}${OutputFilesPrefix}test-coverage.xml"
+            OutputFormat = "JaCoCo"
+            Path = $moduleLocation
+            RecursePaths = $true
         }
-
-        try {
-            Write-Information "Setting ```$Global:SubjectModuleName`` to ``$moduleName``."
-            New-Item -Path Variable:"Global:SubjectModuleName" -Value $moduleName -Force | Out-Null
-
-            if ($UseSrc) {
-                [string] $psm1Path = Resolve-Path "${moduleLocation}${ds}${moduleName}.psm1"
-                Write-Information "Setting ```$Global:SubjectModule`` to ``$psm1Path``."
-                New-Item -Path Variable:"Global:SubjectModule" -Value $psm1Path -Force | Out-Null
-            } elseif ($UsePackageExport) {
-                Write-Information "Setting ```$Global:SubjectModule`` to ``$moduleName``."
-                New-Item -Path Variable:"Global:SubjectModule" -Value $moduleName -Force | Out-Null
-
-                [string] $moduleLocationParent = Split-Path -Path $moduleLocation -Parent
-                Write-Information "Temporarily setting ```$env:PSModulePath`` to '$moduleLocationParent'."
-                $env:PSModulePath = "${moduleLocationParent}"
-            }
-
-            Invoke-Pester -Configuration $pesterConfig
-        } finally {
-            Remove-Module $Global:SubjectModule -Force -ErrorAction SilentlyContinue
-
-            Remove-Item -Path Variable:"Global:SubjectModuleName" -Force -ErrorAction SilentlyContinue
-            Remove-Item -Path Variable:"Global:SubjectModule" -Force -ErrorAction SilentlyContinue
+        Output = @{
+            CIFormat = [bool]$CI ? "GithubActions" : "Auto"
         }
-    } finally {
-        [array]::Reverse($modulesToUnload) `
-            | Select-Object -ExpandProperty path -Unique `
-            | Remove-Module -Force -ErrorAction SilentlyContinue
+    }
+
+    $pesterResult = Invoke-Pester -Configuration $pesterConfig
+    $pesterResult | Write-Output
+
+    [string] $summaryText = "Testing encountered $($pesterResult.FailedCount) failures and $($pesterResult.SkippedCount) skipped tests, with $($pesterResult.PassedCount) tests passing out of a total of $($pesterResult.TotalCount) tests."
+    if ($pesterResult.FailedCount -gt 0 -and (-not $NoFail)) {
+        $summaryText = "⛔ $summaryText"
+    } elseif ($pesterResult.FailedCount -gt 0) {
+        $summaryText = "⚠️ $summaryText"
+    } elseif ($pesterResult.SkippedCount -gt 0) {
+        $summaryText = "❔ $summaryText"
+    } else {
+        $summaryText = "✅ $summaryText"
+    }
+    if ($CI) {
+        $summaryText | Out-File -FilePath $Env:GITHUB_STEP_SUMMARY -Encoding utf8
+    }
+    if ($pesterResult.FailedCount -gt 0 -and (-not $NoFail)) {
+        Write-Error $summaryText -ErrorAction Stop
+    } else {
+        Write-Output $summaryText
     }
 } finally {
-    Write-Information "Restoring ```$env:PSModulePath`` to previous value."
-    $env:PSModulePath = $OldPSModulePath
+    if (Get-Variable -Name TestsUsePackageExport -Scope Global -ErrorAction SilentlyContinue) {
+        Remove-Variable -Name TestsUsePackageExport -Scope Global -Force
+    }
 }

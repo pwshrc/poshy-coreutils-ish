@@ -1,4 +1,8 @@
 #!/usr/bin/env pwsh
+<#
+.SYNOPSIS
+    Cleans the project of build artifacts.
+#>
 param(
 )
 $ErrorActionPreference = "Stop"

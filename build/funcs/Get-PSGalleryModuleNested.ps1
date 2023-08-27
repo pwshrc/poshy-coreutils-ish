@@ -27,38 +27,44 @@ function Get-PSGalleryModuleNested {
     [string] $ds = [System.IO.Path]::DirectorySeparatorChar
     [string] $packagesConfigFile = "${PSScriptRoot}${ds}..${ds}..${ds}packages.PSGallery.config"
 
-    [xml] $packagesConfig = [xml](Get-Content -Raw -Path $packagesConfigFile -Encoding UTF8)
-    [System.Xml.XmlElement[]] $results = $packagesConfig.packages.package | Where-Object {
-        if ($id) {
-            if ($_.id -ieq $id) {
-                if ($version) {
-                    if ($_.version -ieq $version) {
+    [xml] $packagesConfig = $null
+    $packagesConfig = [xml](Get-Content -Raw -Path $packagesConfigFile -Encoding UTF8)
+    [System.Xml.XmlElement[]] $results = @()
+    if ($packagesConfig.packages -and $packagesConfig.packages.package) {
+        $results = $packagesConfig.packages.package | Where-Object {
+            if ($id) {
+                if ($_.id -ieq $id) {
+                    if ($version) {
+                        if ($_.version -ieq $version) {
+                            return $true
+                        }
+                    } else {
                         return $true
                     }
-                } else {
+                } elseif (-not $id) {
                     return $true
                 }
-            } elseif (-not $id) {
-                return $true
-            }
-        } elseif ($_ | Get-Member -Name developmentDependency -ErrorAction SilentlyContinue) {
-            if ([bool] $_.developmentDependency) {
-                return [bool]$DevelopmentDependencies
+            } elseif ($_ | Get-Member -Name developmentDependency -ErrorAction SilentlyContinue) {
+                if ([bool] $_.developmentDependency) {
+                    return [bool]$DevelopmentDependencies
+                } else {
+                    return [bool]$RuntimeDependencies
+                }
             } else {
                 return [bool]$RuntimeDependencies
             }
-        } else {
-            return [bool]$RuntimeDependencies
         }
     }
 
     foreach ($item in $results) {
         [string] $location = "${PSScriptRoot}${ds}..${ds}..${ds}lib${ds}$($item.id).$($item.version)"
         $location = (Resolve-Path -Path $location -ErrorAction SilentlyContinue) ?? $location
-        [string] $psd1Path = `
+        [string] $psd1Path = $null
+        $psd1Path = `
             Get-ChildItem -Path $location -Filter "$($item.id).psd1" -Recurse -File -Force `
             | Select-Object -First 1 -ExpandProperty FullName
-        [string] $psm1Path = `
+        [string] $psm1Path = $null
+        $psm1Path = `
             Get-ChildItem -Path $location -Filter "$($item.id).psm1" -Recurse -File -Force `
             | Select-Object -First 1 -ExpandProperty FullName
 

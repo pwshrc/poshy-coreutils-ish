@@ -16,7 +16,8 @@ function Get-PackageSynopsis {
         Write-Error "The file '${synopsisFilePath}' does not exist."
         return
     }
-    [string] $synopsis = (Get-Content -Raw -Path $synopsisFilePath -Encoding UTF8)
+    [string] $synopsis = $null
+    $synopsis = (Get-Content -Raw -Path $synopsisFilePath -Encoding UTF8)
     if ([string]::IsNullOrEmpty($synopsis)) {
         if ($AllowEmpty) {
             return

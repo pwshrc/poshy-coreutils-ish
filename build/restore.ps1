@@ -1,4 +1,8 @@
 #!/usr/bin/env pwsh
+<#
+.SYNOPSIS
+    Restores dependency PSGallery modules for the project.
+#>
 param(
 )
 $ErrorActionPreference = "Stop"
