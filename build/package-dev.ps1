@@ -16,17 +16,21 @@ if (Get-Command dotnet-gitversion -ErrorAction SilentlyContinue) {
 elseif (Get-Command gitversion -ErrorAction SilentlyContinue) {
     $gitversion_bin = Get-Command gitversion
 }
-else {
-    throw "Could not find gitversion commandline, please install it. See: https://gitversion.net/docs/usage/cli/installation."
+
+if ($gitversion_bin) {
+    [PSObject] $versionInfo = & $gitversion_bin | ConvertFrom-Json
+
+    [string] $PackageVersionNuGet = $versionInfo | Select-Object -ExpandProperty NuGetVersionV2
+    [string] $PackageVersionPrereleaseTag = $versionInfo | Select-Object -ExpandProperty PreReleaseTag
+    [string] $PackageVersionMajorMinorPatchBuild = $versionInfo | Select-Object -ExpandProperty AssemblySemVer
+    [string] $CommitSha = $versionInfo | Select-Object -ExpandProperty Sha
+} else {
+    [string] $PackageVersionNuGet = "0.0.1"
+    [string] $PackageVersionPrereleaseTag = $null
+    [string] $PackageVersionMajorMinorPatchBuild = "0.0.1.0"
+    [string] $CommitSha = (git rev-parse HEAD)
 }
-
-[PSObject] $versionInfo = & $gitversion_bin | ConvertFrom-Json
-
-[string] $PackageVersionNuGet = $versionInfo | Select-Object -ExpandProperty NuGetVersionV2
-[string] $PackageVersionPrereleaseTag = $versionInfo | Select-Object -ExpandProperty PreReleaseTag
-[string] $PackageVersionMajorMinorPatchBuild = $versionInfo | Select-Object -ExpandProperty AssemblySemVer
 [string] $ReleaseNotes = "Fake Release Notes"
-[string] $CommitSha = $versionInfo | Select-Object -ExpandProperty Sha
 
 if (-not $PackageVersionPrereleaseTag) {
     $PackageVersionNuGet += "-dev"
