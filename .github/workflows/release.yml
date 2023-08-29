@@ -48,6 +48,7 @@ jobs:
         with:
           name: version.json
           path: ./version/version.json
+          if-no-files-found: error
       - name: Unzip PSGallery-package
         shell: pwsh
         run: Expand-Archive -Path "PSGallery-package.zip" -DestinationPath ./package/
@@ -56,6 +57,7 @@ jobs:
         with:
           name: PSGallery-package
           path: ./package/*.nupkg
+          if-no-files-found: error
       - name: Unzip release-notes.md
         shell: pwsh
         run: Expand-Archive -Path "release-notes.md.zip" -DestinationPath ./release-notes/
@@ -64,6 +66,7 @@ jobs:
         with:
           name: release-notes.md
           path: ./release-notes/release-notes.md
+          if-no-files-found: error
 
   test-publish-psgallery-package:
     name: Test Publish to PSGallery
@@ -90,7 +93,7 @@ jobs:
         Set-PSRepository PSGallery -InstallationPolicy Trusted
         ./build/restore.ps1
     - name: "Get artifact: PSGallery-package"
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: PSGallery-package
         path: ./out/
@@ -127,21 +130,13 @@ jobs:
       run: |
         Set-PSRepository PSGallery -InstallationPolicy Trusted
         ./build/restore.ps1
-    - name: "Get artifact: version.json"
-      uses: actions/download-artifact@v2
-      with:
-        name: version.json
-        path: ./out/
     - name: Populate GitVersion variables
       id: gitversion_vars
-      shell: pwsh
-      run: |
-        [object] $version = Get-Content -Path ./out/version.json -Encoding UTF8 | ConvertFrom-Json
-        foreach ($key in $version.PSObject.Properties.Name) {
-          echo "::set-output name=$key::$($version.$key)"
-        }
+      uses: pwshrc/actions-determine-version@v0.3.0
+      with:
+        mode: 'download'
     - name: "Get artifact: PSGallery-package"
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: PSGallery-package
         path: ./out/
@@ -165,26 +160,18 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v3
-    - name: "Get artifact: version.json"
-      uses: actions/download-artifact@v2
-      with:
-        name: version.json
-        path: ./out/
     - name: Populate GitVersion variables
       id: gitversion_vars
-      shell: pwsh
-      run: |
-        [object] $version = Get-Content -Path ./out/version.json -Encoding UTF8 | ConvertFrom-Json
-        foreach ($key in $version.PSObject.Properties.Name) {
-          echo "::set-output name=$key::$($version.$key)"
-        }
+      uses: pwshrc/actions-determine-version@v0.3.0
+      with:
+        mode: 'download'
     - name: "Get artifact: release-notes.md"
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: release-notes.md
         path: ./out/
     - name: "Get artifact: PSGallery-package"
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: PSGallery-package
         path: ./out/
