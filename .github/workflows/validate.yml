@@ -13,26 +13,10 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
-      - name: "Cache: Nested PSGallery Modules"
-        id: cacher
-        uses: actions/cache@v3
-        with:
-          path: ./lib
-          key: lib-PSGallery-${{ hashFiles('./NuGet.PSGallery.config', './packages.PSGallery.config') }}
-      - name: Install NuGet
-        uses: nuget/setup-nuget@v1.2.0
-        if: steps.cacher.outputs.cache-hit != 'true'
-        with:
-          nuget-version: '6.x'
-      - name: Restore Nested PSGallery Modules
-        if: steps.cacher.outputs.cache-hit != 'true'
-        shell: pwsh
-        run: |
-          Set-PSRepository PSGallery -InstallationPolicy Trusted
-          ./build/restore.ps1
       - name: Lint with PSScriptAnalyzer
-        shell: pwsh
-        run: ./build/lint.ps1 -CI -NoFail:([bool]"${{ secrets.MANDATE_LINT_SUCCESS != 'true' }}")
+        uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.0
+        with:
+          run: ./build/lint.ps1 -CI -NoFail:([bool]"${{ secrets.MANDATE_LINT_SUCCESS != 'true' }}")
 
   determine-version:
     name: Determine Version with GitVersion
@@ -82,23 +66,6 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v3
-    - name: "Cache: Nested PSGallery Modules"
-      id: cacher
-      uses: actions/cache@v3
-      with:
-        path: ./lib
-        key: lib-PSGallery-${{ hashFiles('./NuGet.PSGallery.config', './packages.PSGallery.config') }}
-    - name: Install NuGet
-      uses: nuget/setup-nuget@v1.2.0
-      if: steps.cacher.outputs.cache-hit != 'true'
-      with:
-        nuget-version: '6.x'
-    - name: Restore Nested PSGallery Modules
-      if: steps.cacher.outputs.cache-hit != 'true'
-      shell: pwsh
-      run: |
-        Set-PSRepository PSGallery -InstallationPolicy Trusted
-        ./build/restore.ps1
     - name: Populate GitVersion variables
       id: gitversion_vars
       uses: pwshrc/actions-determine-version@v0.3.0
@@ -110,15 +77,16 @@ jobs:
         name: release-notes.md
         path: ./out/
     - name: Build PSGallery package
-      shell: pwsh
+      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.0
       env:
         PackageVersionNuGet: ${{ steps.gitversion_vars.outputs.NuGetVersionV2 }}
         PackageVersionMajorMinorPatchBuild: ${{ steps.gitversion_vars.outputs.AssemblySemVer }}
         PackageVersionPrereleaseTag: ${{ steps.gitversion_vars.outputs.PreReleaseTag }}
         CommitSha: ${{ steps.gitversion_vars.outputs.Sha }}
-      run: |
-        [string] $releaseNotes = (Get-Content -Raw -Path ./out/release-notes.md -Encoding UTF8).Trim()
-        ./build/package.ps1 -PackageVersionNuGet $Env:PackageVersionNuGet -PackageVersionMajorMinorPatchBuild $Env:PackageVersionMajorMinorPatchBuild -PackageVersionPrereleaseTag $Env:PackageVersionPrereleaseTag -ReleaseNotes $releaseNotes -CommitSha $Env:CommitSha
+      with:
+        run: |
+          [string] $releaseNotes = (Get-Content -Raw -Path ./out/release-notes.md -Encoding UTF8).Trim()
+          ./build/package.ps1 -PackageVersionNuGet $Env:PackageVersionNuGet -PackageVersionMajorMinorPatchBuild $Env:PackageVersionMajorMinorPatchBuild -PackageVersionPrereleaseTag $Env:PackageVersionPrereleaseTag -ReleaseNotes $releaseNotes -CommitSha $Env:CommitSha
     - name: "Create artifact: PSGallery-package"
       uses: actions/upload-artifact@v3
       with:
@@ -153,31 +121,15 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v3
-    - name: "Cache: Nested PSGallery Modules"
-      id: cacher
-      uses: actions/cache@v3
-      with:
-        path: ./lib
-        key: lib-PSGallery-${{ hashFiles('./NuGet.PSGallery.config', './packages.PSGallery.config') }}
-    - name: Install NuGet
-      uses: nuget/setup-nuget@v1.2.0
-      if: steps.cacher.outputs.cache-hit != 'true'
-      with:
-        nuget-version: '6.x'
-    - name: Restore Nested PSGallery Modules
-      if: steps.cacher.outputs.cache-hit != 'true'
-      shell: pwsh
-      run: |
-        Set-PSRepository PSGallery -InstallationPolicy Trusted
-        ./build/restore.ps1
     - name: "Get artifact: PSGallery-package"
       uses: actions/download-artifact@v3
       with:
         name: PSGallery-package
         path: ./out/
     - name: Test with Pester
-      shell: pwsh
-      run: ./build/test.ps1 -UsePackageExport -CI -OutputFilesPrefix "${{ matrix.os }}-" -NoFail:([bool]"${{ matrix.experimental }}")
+      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.0
+      with:
+        run: ./build/test.ps1 -UsePackageExport -CI -OutputFilesPrefix "${{ matrix.os }}-" -NoFail:([bool]"${{ matrix.experimental }}")
     - name: "Create artifact: tests-${{ matrix.os }}"
       uses: actions/upload-artifact@v3
       if: ${{ always() }}
