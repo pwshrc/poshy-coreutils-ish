@@ -38,45 +38,11 @@ jobs:
     name: Determine Version with GitVersion
     runs-on: ubuntu-latest
     steps:
-    - name: Cache dotnet tools
-      id: cacher
-      uses: actions/cache@v3
+    - name: Populate GitVersion variables
+      id: gitversion_vars
+      uses: pwshrc/actions-determine-version@v0.3.0
       with:
-        path: |
-          ${{ env.HOME }}/.dotnet/tools
-          ${{ env.USERPROFILE }}\\.dotnet\\tools
-        key: ${{ runner.os }}-dotnet-tools-${{ hashFiles('**/global.json') }}
-    - name: dotnet tool install -g GitVersion.Tool
-      if: steps.cacher.outputs.cache-hit != 'true'
-      shell: pwsh
-      run: dotnet tool install --global GitVersion.Tool --version 5.12
-    - name: Check out repository full history
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0  # GitVersion requires the full history to calculate the version.
-    - name: Show GitVersion configuration
-      shell: pwsh
-      run: dotnet-gitversion /showconfig
-    - name: Capture GitVersion configuration
-      shell: pwsh
-      run: |
-        New-Item -Path ./out -Type Directory -Force | Out-Null
-        dotnet-gitversion /showconfig | Out-File -Path ./out/GitVersion.effective.yml -Encoding UTF8
-    - name: Determine version
-      shell: pwsh
-      run: |
-        dotnet-gitversion /output json | Out-File -Path ./out/version.json -Encoding UTF8
-        [int] $gitversionExitCode = $LASTEXITCODE
-        if ($gitversionExitCode -ne 0) {
-          Write-Host "GitVersion failed. Re-running with diagnostic verbosity."
-          dotnet-gitversion /output json /verbosity diagnostic
-          exit $gitversionExitCode
-        }
-    - name: "Create artifact: version.json"
-      uses: actions/upload-artifact@v3
-      with:
-        name: version.json
-        path: ./out/version.json
+        mode: 'upload'
 
   create-releasenotes:
     name: Create Release Notes
@@ -87,19 +53,11 @@ jobs:
       uses: actions/checkout@v3
       with:
         fetch-depth: 0  # create-release-notes requires the full history to create the release notes.
-    - name: "Get artifact: version.json"
-      uses: actions/download-artifact@v2
-      with:
-        name: version.json
-        path: ./out/
-    - name: Populate version variables
+    - name: Populate GitVersion variables
       id: gitversion_vars
-      shell: pwsh
-      run: |
-        [object] $version = Get-Content -Path ./out/version.json | ConvertFrom-Json
-        foreach ($key in $version.PSObject.Properties.Name) {
-          echo "::set-output name=$key::$($version.$key)"
-        }
+      uses: pwshrc/actions-determine-version@v0.3.0
+      with:
+        mode: 'download'
     - name: Create release notes
       id: create_release_notes
       uses: mikepenz/release-changelog-builder-action@v4
@@ -109,12 +67,13 @@ jobs:
         fromTag: ${{ steps.gitversion_vars.outputs.VersionSourceSha }}
         toTag: ${{ steps.gitversion_vars.outputs.Sha }}
         commitMode: true
-        outputFile: ./out/release-notes.md
+        outputFile: ./release-notes.md
     - name: "Create artifact: release-notes.md"
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: release-notes.md
-        path: ./out/release-notes.md
+        path: ./release-notes.md
+        if-no-files-found: error
 
   build-release-package:
     name: Build Release Package
@@ -140,35 +99,32 @@ jobs:
       run: |
         Set-PSRepository PSGallery -InstallationPolicy Trusted
         ./build/restore.ps1
-    - name: "Get artifact: version.json"
-      uses: actions/download-artifact@v2
-      with:
-        name: version.json
-        path: ./out/
     - name: Populate GitVersion variables
       id: gitversion_vars
-      shell: pwsh
-      run: |
-        [object] $version = Get-Content -Raw -Path ./out/version.json -Encoding UTF8 | ConvertFrom-Json
-        foreach ($key in $version.PSObject.Properties.Name) {
-          echo "::set-output name=$key::$($version.$key)"
-        }
+      uses: pwshrc/actions-determine-version@v0.3.0
+      with:
+        mode: 'download'
     - name: "Get artifact: release-notes.md"
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: release-notes.md
         path: ./out/
     - name: Build PSGallery package
       shell: pwsh
+      env:
+        PackageVersionNuGet: ${{ steps.gitversion_vars.outputs.NuGetVersionV2 }}
+        PackageVersionMajorMinorPatchBuild: ${{ steps.gitversion_vars.outputs.AssemblySemVer }}
+        PackageVersionPrereleaseTag: ${{ steps.gitversion_vars.outputs.PreReleaseTag }}
+        CommitSha: ${{ steps.gitversion_vars.outputs.Sha }}
       run: |
         [string] $releaseNotes = (Get-Content -Raw -Path ./out/release-notes.md -Encoding UTF8).Trim()
-        [object] $version = Get-Content -Raw -Path ./out/version.json -Encoding UTF8 | ConvertFrom-Json
-        ./build/package.ps1 -PackageVersionNuGet $version.NuGetVersionV2 -PackageVersionMajorMinorPatchBuild $version.AssemblySemVer -PackageVersionPrereleaseTag $version.PrereleaseTag -ReleaseNotes $releaseNotes -CommitSha $version.Sha
+        ./build/package.ps1 -PackageVersionNuGet $Env:PackageVersionNuGet -PackageVersionMajorMinorPatchBuild $Env:PackageVersionMajorMinorPatchBuild -PackageVersionPrereleaseTag $Env:PackageVersionPrereleaseTag -ReleaseNotes $releaseNotes -CommitSha $Env:CommitSha
     - name: "Create artifact: PSGallery-package"
       uses: actions/upload-artifact@v3
       with:
         name: PSGallery-package
         path: ./out/*.nupkg
+        if-no-files-found: error
 
   tests:
     name: Test with Pester on ${{ matrix.os }}
@@ -215,7 +171,7 @@ jobs:
         Set-PSRepository PSGallery -InstallationPolicy Trusted
         ./build/restore.ps1
     - name: "Get artifact: PSGallery-package"
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: PSGallery-package
         path: ./out/
@@ -228,6 +184,7 @@ jobs:
       with:
         name: "tests-${{ matrix.os }}"
         path: ./out/*.xml
+        if-no-files-found: error
     - name: Upload coverage report to Codecov
       uses: codecov/codecov-action@v3
       if: ${{ (github.ref == 'refs/heads/main') }}
