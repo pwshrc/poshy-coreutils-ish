@@ -14,59 +14,18 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - run: echo "Beginning release."
-      - name: 'Download artifacts from triggering workflow'
-        uses: actions/github-script@v6
+      - name: "Transfer 'version.json' artifact from triggering workflow"
+        uses: pwshrc/actions-transfer-artifact@v0.3.0
         with:
-          script: |
-            let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: context.payload.workflow_run.id,
-            });
-            let matchArtifacts = allArtifacts.data.artifacts.filter((artifact) => {
-              return artifact.name == 'version.json' || artifact.name == 'PSGallery-package' || artifact.name == 'release-notes.md';
-            });
-            let downloadsPromises = matchArtifacts.map(async (artifact) => {
-              var blob = await github.rest.actions.downloadArtifact({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                artifact_id: artifact.id,
-                archive_format: 'zip'
-              });
-              return { name: artifact.name, data: blob.data }
-            });
-            let downloads = await Promise.all(downloadsPromises);
-            let fs = require('fs');
-            downloads.forEach((download) => {
-              fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/${download.name}.zip`, Buffer.from(download.data));
-            });
-      - name: Unzip version.json
-        shell: pwsh
-        run: Expand-Archive -Path "version.json.zip" -DestinationPath ./version/
-      - name: Upload version.json
-        uses: actions/upload-artifact@v3
+          name: 'version.json'
+      - name: "Transfer 'PSGallery-package' artifact from triggering workflow"
+        uses: pwshrc/actions-transfer-artifact@v0.3.0
         with:
-          name: version.json
-          path: ./version/version.json
-          if-no-files-found: error
-      - name: Unzip PSGallery-package
-        shell: pwsh
-        run: Expand-Archive -Path "PSGallery-package.zip" -DestinationPath ./package/
-      - name: Upload PSGallery-package
-        uses: actions/upload-artifact@v3
+          name: 'PSGallery-package'
+      - name: "Transfer 'release-notes.md' artifact from triggering workflow"
+        uses: pwshrc/actions-transfer-artifact@v0.3.0
         with:
-          name: PSGallery-package
-          path: ./package/*.nupkg
-          if-no-files-found: error
-      - name: Unzip release-notes.md
-        shell: pwsh
-        run: Expand-Archive -Path "release-notes.md.zip" -DestinationPath ./release-notes/
-      - name: Upload release-notes.md
-        uses: actions/upload-artifact@v3
-        with:
-          name: release-notes.md
-          path: ./release-notes/release-notes.md
-          if-no-files-found: error
+          name: 'release-notes.md'
 
   test-publish-psgallery-package:
     name: Test Publish to PSGallery
