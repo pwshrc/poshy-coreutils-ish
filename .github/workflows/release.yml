@@ -34,23 +34,6 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v3
-    - name: "Cache: Nested PSGallery Modules"
-      id: cacher
-      uses: actions/cache@v3
-      with:
-        path: ./lib
-        key: lib-PSGallery-${{ hashFiles('./NuGet.PSGallery.config', './packages.PSGallery.config') }}
-    - name: Install NuGet
-      uses: nuget/setup-nuget@v1.2.0
-      if: steps.cacher.outputs.cache-hit != 'true'
-      with:
-        nuget-version: '6.x'
-    - name: Restore Nested PSGallery Modules
-      if: steps.cacher.outputs.cache-hit != 'true'
-      shell: pwsh
-      run: |
-        Set-PSRepository PSGallery -InstallationPolicy Trusted
-        ./build/restore.ps1
     - name: "Get artifact: PSGallery-package"
       uses: actions/download-artifact@v3
       with:
@@ -58,12 +41,14 @@ jobs:
         path: ./out/
     - name: Publish Prerelease to PSGallery (WhatIf)
       if: "${{ steps.gitversion_vars.outputs.PreReleaseTag != '' }}"
-      shell: pwsh
-      run: ./build/publish.ps1 -NUGET_KEY "abc" -Prerelease -WhatIf
+      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.0
+      with:
+        run: ./build/publish.ps1 -NUGET_KEY "abc" -Prerelease -WhatIf
     - name: Publish Release to PSGallery (WhatIf)
       if: "${{ steps.gitversion_vars.outputs.PreReleaseTag == '' }}"
-      shell: pwsh
-      run: ./build/publish.ps1 -NUGET_KEY "abc" -WhatIf
+      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.0
+      with:
+        run: ./build/publish.ps1 -NUGET_KEY "abc" -WhatIf
 
   publish-psgallery-package:
     name: Publish to PSGallery
@@ -72,23 +57,6 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v3
-    - name: "Cache: Nested PSGallery Modules"
-      id: cacher
-      uses: actions/cache@v3
-      with:
-        path: ./lib
-        key: lib-PSGallery-${{ hashFiles('./NuGet.PSGallery.config', './packages.PSGallery.config') }}
-    - name: Install NuGet
-      uses: nuget/setup-nuget@v1.2.0
-      if: steps.cacher.outputs.cache-hit != 'true'
-      with:
-        nuget-version: '6.x'
-    - name: Restore Nested PSGallery Modules
-      if: steps.cacher.outputs.cache-hit != 'true'
-      shell: pwsh
-      run: |
-        Set-PSRepository PSGallery -InstallationPolicy Trusted
-        ./build/restore.ps1
     - name: Populate GitVersion variables
       id: gitversion_vars
       uses: pwshrc/actions-determine-version@v0.3.0
@@ -101,16 +69,18 @@ jobs:
         path: ./out/
     - name: Publish Prerelease to PSGallery
       if: "${{ steps.gitversion_vars.outputs.PreReleaseTag != '' }}"
-      shell: pwsh
+      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.0
       env:
         NUGET_KEY: ${{ secrets.NUGET_KEY }}
-      run: ./build/publish.ps1 -NUGET_KEY "$env:NUGET_KEY" -Prerelease
+      with:
+        run: ./build/publish.ps1 -NUGET_KEY "$env:NUGET_KEY" -Prerelease
     - name: Publish Release to PSGallery
       if: "${{ steps.gitversion_vars.outputs.PreReleaseTag == '' }}"
-      shell: pwsh
+      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.0
       env:
         NUGET_KEY: ${{ secrets.NUGET_KEY }}
-      run: ./build/publish.ps1 -NUGET_KEY "$env:NUGET_KEY"
+      with:
+        run: ./build/publish.ps1 -NUGET_KEY "$env:NUGET_KEY"
 
   publish-github-release:
     name: Publish GitHub Release
