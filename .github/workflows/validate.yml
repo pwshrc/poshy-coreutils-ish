@@ -14,7 +14,7 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Lint with PSScriptAnalyzer
-        uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.0
+        uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.2
         with:
           run: ./build/lint.ps1 -CI -NoFail:([bool]"${{ secrets.MANDATE_LINT_SUCCESS != 'true' }}")
 
@@ -24,7 +24,7 @@ jobs:
     steps:
     - name: Populate GitVersion variables
       id: gitversion_vars
-      uses: pwshrc/actions-determine-version@v0.3.0
+      uses: pwshrc/actions-determine-version@v0.8.0
       with:
         mode: 'upload'
 
@@ -33,31 +33,11 @@ jobs:
     needs: determine-version
     runs-on: ubuntu-latest
     steps:
-    - name: Check out repository full history
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0  # create-release-notes requires the full history to create the release notes.
-    - name: Populate GitVersion variables
-      id: gitversion_vars
-      uses: pwshrc/actions-determine-version@v0.3.0
-      with:
-        mode: 'download'
     - name: Create release notes
-      id: create_release_notes
-      uses: mikepenz/release-changelog-builder-action@v4
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: pwshrc/actions-create-release-notes@v0.8.0
       with:
-        fromTag: ${{ steps.gitversion_vars.outputs.VersionSourceSha }}
-        toTag: ${{ steps.gitversion_vars.outputs.Sha }}
-        commitMode: true
-        outputFile: ./release-notes.md
-    - name: "Create artifact: release-notes.md"
-      uses: actions/upload-artifact@v3
-      with:
-        name: release-notes.md
-        path: ./release-notes.md
-        if-no-files-found: error
+        mode: 'upload'
+        github_token: "${{ secrets.GITHUB_TOKEN }}"
 
   build-release-package:
     name: Build Release Package
@@ -66,23 +46,25 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v3
-    - name: Populate GitVersion variables
+    - name: Populate GitVersion
       id: gitversion_vars
-      uses: pwshrc/actions-determine-version@v0.3.0
+      uses: pwshrc/actions-determine-version@v0.8.0
       with:
         mode: 'download'
-    - name: "Get artifact: release-notes.md"
-      uses: actions/download-artifact@v3
+    - name: Populate release notes
+      id: get-releasenotes
+      uses: pwshrc/actions-create-release-notes@v0.8.0
       with:
-        name: release-notes.md
-        path: ./out/
+        mode: 'download'
+        github_token: "${{ secrets.GITHUB_TOKEN }}"
     - name: Build PSGallery package
-      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.0
+      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.2
       env:
         PackageVersionNuGet: ${{ steps.gitversion_vars.outputs.NuGetVersionV2 }}
         PackageVersionMajorMinorPatchBuild: ${{ steps.gitversion_vars.outputs.AssemblySemVer }}
         PackageVersionPrereleaseTag: ${{ steps.gitversion_vars.outputs.PreReleaseTag }}
         CommitSha: ${{ steps.gitversion_vars.outputs.Sha }}
+        ReleaseNotesFilepath: ${{ steps.get-releasenotes.outputs.filepath }}
       with:
         run: |
           [string] $releaseNotes = (Get-Content -Raw -Path ./out/release-notes.md -Encoding UTF8).Trim()
@@ -127,19 +109,19 @@ jobs:
         name: PSGallery-package
         path: ./out/
     - name: Test with Pester
-      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.0
+      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.2
       with:
         run: ./build/test.ps1 -UsePackageExport -CI -OutputFilesPrefix "${{ matrix.os }}-" -NoFail:([bool]"${{ matrix.experimental }}")
     - name: "Create artifact: tests-${{ matrix.os }}"
       uses: actions/upload-artifact@v3
-      if: ${{ always() }}
+      if: always()
       with:
         name: "tests-${{ matrix.os }}"
         path: ./out/*.xml
         if-no-files-found: error
     - name: Upload coverage report to Codecov
       uses: codecov/codecov-action@v3
-      if: ${{ (github.ref == 'refs/heads/main') }}
+      if: github.ref == 'refs/heads/main'
       with:
         fail_ci_if_error: true
         flags: ${{ matrix.codecov_os }},unittests
