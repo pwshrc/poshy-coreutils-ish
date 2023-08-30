@@ -15,15 +15,15 @@ jobs:
     steps:
       - run: echo "Beginning release."
       - name: "Transfer 'version.json' artifact from triggering workflow"
-        uses: pwshrc/actions-transfer-artifact@v0.3.0
+        uses: pwshrc/actions-transfer-artifact@v0.3.2
         with:
           name: 'version.json'
       - name: "Transfer 'PSGallery-package' artifact from triggering workflow"
-        uses: pwshrc/actions-transfer-artifact@v0.3.0
+        uses: pwshrc/actions-transfer-artifact@v0.3.2
         with:
           name: 'PSGallery-package'
       - name: "Transfer 'release-notes.md' artifact from triggering workflow"
-        uses: pwshrc/actions-transfer-artifact@v0.3.0
+        uses: pwshrc/actions-transfer-artifact@v0.3.2
         with:
           name: 'release-notes.md'
 
