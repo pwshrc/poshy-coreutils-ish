@@ -1,4 +1,20 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base"]
+  "extends": ["config:base"],
+  "automergeType": "branch",
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true,
+      "autoApprove": true
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "automerge": true,
+      "autoApprove": true
+    }
+  ],
+  "commitMessageAction": "Updates",
+  "commitMessagePrefix": "⬆️",
+  "assignees": ["brucificus"]
 }
