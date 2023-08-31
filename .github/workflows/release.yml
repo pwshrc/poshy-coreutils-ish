@@ -119,9 +119,8 @@ jobs:
         tag_name: "v${{ steps.gitversion_vars.outputs.SemVer }}"
         target_commitish: "${{ steps.gitversion_vars.outputs.Sha }}"
         generate_release_notes: false
-        body_path: ${{ steps.get-releasenotes.outputs.filepath }}
-        prerelease: "${{ steps.gitversion_vars.outputs.PreReleaseTag != '' }}"
+        body_path: "${{ steps.get-releasenotes.outputs.filepath }}"
+        prerelease: ${{ steps.gitversion_vars.outputs.PreReleaseTag != '' }}
         draft: false
-        files: |
-          ./out/*.nupkg
+        files: ./out/*.nupkg
         fail_on_unmatched_files: true
