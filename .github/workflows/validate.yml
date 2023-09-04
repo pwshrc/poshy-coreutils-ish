@@ -14,7 +14,7 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Lint with PSScriptAnalyzer
-        uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.7
+        uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.8
         with:
           run: ./build/lint.ps1 -CI -NoFail:([bool]"${{ secrets.MANDATE_LINT_SUCCESS != 'true' }}")
 
@@ -58,7 +58,7 @@ jobs:
         mode: 'download'
         github_token: "${{ secrets.GITHUB_TOKEN }}"
     - name: Build PSGallery package
-      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.7
+      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.8
       env:
         PackageVersionNuGet: ${{ steps.gitversion_vars.outputs.NuGetVersionV2 }}
         PackageVersionMajorMinorPatchBuild: ${{ steps.gitversion_vars.outputs.AssemblySemVer }}
@@ -109,7 +109,7 @@ jobs:
         name: PSGallery-package
         path: ./out/
     - name: Test with Pester
-      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.7
+      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.8
       with:
         run: ./build/test.ps1 -UsePackageExport -CI -OutputFilesPrefix "${{ matrix.os }}-" -NoFail:([bool]"${{ matrix.experimental }}")
     - name: "Create artifact: tests-${{ matrix.os }}"
