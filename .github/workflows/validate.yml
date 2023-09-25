@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Lint with PSScriptAnalyzer
         uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.7
         with:
@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Populate GitVersion
       id: gitversion_vars
       uses: pwshrc/actions-determine-version@v0.8.5
@@ -102,7 +102,7 @@ jobs:
     needs: build-release-package
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: "Get artifact: PSGallery-package"
       uses: actions/download-artifact@v3
       with:
