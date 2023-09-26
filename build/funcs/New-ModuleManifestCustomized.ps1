@@ -159,7 +159,7 @@ function New-ModuleManifestCustomized {
         -CompanyName $CompanyName `
         -Description $packageSynopsis `
         -Copyright $PackageCopyright `
-        -ModuleVersion $PackageVersionMajorMinorPatchBuild `
+        -ModuleVersion $PackageVersion `
         -Guid $PackageGuid `
         -Tags $PackageTags `
         -LicenseUri "${ProjectUrlAtVersion}/${LicenseFileName}" `
