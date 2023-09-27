@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Review Dependabot PR
-        uses: pwshrc/actions-review-dependabot@v0.6.1
+        uses: pwshrc/actions-review-dependabot@v0.6.2
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
           required-pr-user-login: 'dependabot[bot]'
