@@ -33,7 +33,7 @@ jobs:
     needs: [begin-release]
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Populate GitVersion variables
       id: gitversion_vars
       uses: pwshrc/actions-determine-version@v0.8.5
@@ -46,12 +46,12 @@ jobs:
         path: ./out/
     - name: Publish Prerelease to PSGallery (WhatIf)
       if: steps.gitversion_vars.outputs.PreReleaseTag != ''
-      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.7
+      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.8
       with:
         run: ./build/publish.ps1 -NUGET_KEY "abc" -Prerelease -WhatIf
     - name: Publish Release to PSGallery (WhatIf)
       if: steps.gitversion_vars.outputs.PreReleaseTag == ''
-      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.7
+      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.8
       with:
         run: ./build/publish.ps1 -NUGET_KEY "abc" -WhatIf
 
@@ -61,7 +61,7 @@ jobs:
     needs: [test-publish-psgallery-package]
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Populate GitVersion variables
       id: gitversion_vars
       uses: pwshrc/actions-determine-version@v0.8.5
@@ -74,14 +74,14 @@ jobs:
         path: ./out/
     - name: Publish Prerelease to PSGallery
       if: steps.gitversion_vars.outputs.PreReleaseTag != ''
-      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.7
+      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.8
       env:
         NUGET_KEY: ${{ secrets.NUGET_KEY }}
       with:
         run: ./build/publish.ps1 -NUGET_KEY "$env:NUGET_KEY" -Prerelease
     - name: Publish Release to PSGallery
       if: steps.gitversion_vars.outputs.PreReleaseTag == ''
-      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.7
+      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.8
       env:
         NUGET_KEY: ${{ secrets.NUGET_KEY }}
       with:
@@ -93,7 +93,7 @@ jobs:
     needs: [publish-psgallery-package]
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Get GitVersion
       id: gitversion_vars
       uses: pwshrc/actions-determine-version@v0.8.5
