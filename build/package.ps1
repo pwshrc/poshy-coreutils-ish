@@ -6,11 +6,11 @@
 param(
     [Parameter(Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
-    [string] $PackageVersionNuGet,
+    [string] $PackageVersion,
 
     [Parameter(Mandatory = $true)]
-    [ValidateNotNullOrEmpty()]
-    [string] $PackageVersionMajorMinorPatchBuild,
+    [ValidateNotNull()]
+    [Version] $ModuleVersion,
 
     [Parameter(Mandatory = $false)]
     [string] $PackageVersionPrereleaseTag,
@@ -61,7 +61,6 @@ Set-StrictMode -Version Latest
 
 . "${PSScriptRoot}${ds}funcs${ds}Get-PSGalleryModuleNested.ps1"
 [object[]] $nestedRuntimePSGalleryModules = @(Get-PSGalleryModuleNested -RuntimeDependencies)
-[string] $packageVersion = $PackageVersionNuGet
 
 . "${PSScriptRoot}${ds}funcs${ds}New-ModuleManifestCustomized.ps1"
 [System.IO.FileInfo] $moduleManifest = New-ModuleManifestCustomized `
@@ -78,8 +77,8 @@ Set-StrictMode -Version Latest
     -PackageCopyright $packageCopyright `
     -PackageTags $packageTagsForNuSpec `
     -ReleaseNotes $ReleaseNotes `
-    -PackageVersion $packageVersion `
-    -PackageVersionMajorMinorPatchBuild $PackageVersionMajorMinorPatchBuild `
+    -PackageVersion $PackageVersion `
+    -ModuleVersion $ModuleVersion `
     -PackageVersionPrereleaseTag $PackageVersionPrereleaseTag `
     -PackageGuid $packageGuid `
     -PSEdition_Desktop:$PSEdition_Desktop `
@@ -90,7 +89,7 @@ Set-StrictMode -Version Latest
 . "${PSScriptRoot}${ds}funcs${ds}New-TemporaryProjectFile.ps1"
 [System.IO.FileInfo] $projectFile = New-TemporaryProjectFile `
     -PackageId $PackageId `
-    -PackageVersion $packageVersion `
+    -PackageVersion $PackageVersion `
     -CompanyName $companyName `
     -Authors $authors `
     -GitRepositoryUrl $repositoryGitUrl `

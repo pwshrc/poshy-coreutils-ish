@@ -62,8 +62,8 @@ function New-ModuleManifestCustomized {
         [string] $PackageVersion,
 
         [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string] $PackageVersionMajorMinorPatchBuild,
+        [ValidateNotNull()]
+        [Version] $ModuleVersion,
 
         [Parameter(Mandatory = $false)]
         [string] $PackageVersionPrereleaseTag,
@@ -159,7 +159,7 @@ function New-ModuleManifestCustomized {
         -CompanyName $CompanyName `
         -Description $packageSynopsis `
         -Copyright $PackageCopyright `
-        -ModuleVersion $PackageVersion `
+        -ModuleVersion $ModuleVersion `
         -Guid $PackageGuid `
         -Tags $PackageTags `
         -LicenseUri "${ProjectUrlAtVersion}/${LicenseFileName}" `
