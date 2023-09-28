@@ -3,7 +3,10 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
 
-# See: https://www.gnu.org/software/coreutils/manual/html_node/stty-invocation.html
+<#
+.DESCRIPTION
+    See: https://www.gnu.org/software/coreutils/manual/html_node/stty-invocation.html
+#>
 function stty {
     throw [System.NotImplementedException]::new("TODO: Implement stty.")
 }

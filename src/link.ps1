@@ -3,7 +3,10 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
 
-# See: https://www.gnu.org/software/coreutils/manual/html_node/link-invocation.html
+<#
+.DESCRIPTION
+    See: https://www.gnu.org/software/coreutils/manual/html_node/link-invocation.html
+#>
 function link {
     throw [System.NotImplementedException]::new("TODO: Implement 'link'.")
 }

@@ -4,7 +4,15 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
 
-# See: https://www.gnu.org/software/coreutils/manual/html_node/arch-invocation.html
+<#
+.SYNOPSIS
+    Prints the machine architecture.
+.OUTPUTS
+    System.String
+    The machine architecture.
+.DESCRIPTION
+    See: https://www.gnu.org/software/coreutils/manual/html_node/arch-invocation.html
+#>
 function arch {
     [Architecture] $arch = [RuntimeInformation]::ProcessArchitecture
     switch ( $arch ) {

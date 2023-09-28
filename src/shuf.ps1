@@ -3,7 +3,20 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
 
-# See: https://www.gnu.org/software/coreutils/manual/html_node/shuf-invocation.html
+<#
+.SYNOPSIS
+    Generates random permutations.
+.PARAMETER HeadCount
+    Output at most COUNT lines.
+.PARAMETER InputFile
+    Read lines from FILE.
+.PARAMETER InputRange
+    Treat each number LO through HI as an input line.
+.PARAMETER InputObject
+    Treat each element of INPUTOBJECT as an input line.
+.DESCRIPTION
+    See: https://www.gnu.org/software/coreutils/manual/html_node/shuf-invocation.html
+#>
 function shuf {
     param(
         [Parameter(Mandatory = $false, Position = 0)]
