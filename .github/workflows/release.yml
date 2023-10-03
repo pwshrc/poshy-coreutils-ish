@@ -15,15 +15,15 @@ jobs:
     steps:
       - run: echo "Beginning release."
       - name: "Transfer 'version-json' artifact from triggering workflow"
-        uses: pwshrc/actions-transfer-artifact@v0.3.7
+        uses: pwshrc/actions-transfer-artifact@v0.3.9
         with:
           name: 'version-json'
       - name: "Transfer 'PSGallery-package' artifact from triggering workflow"
-        uses: pwshrc/actions-transfer-artifact@v0.3.7
+        uses: pwshrc/actions-transfer-artifact@v0.3.9
         with:
           name: 'PSGallery-package'
       - name: "Transfer 'release-notes' artifact from triggering workflow"
-        uses: pwshrc/actions-transfer-artifact@v0.3.7
+        uses: pwshrc/actions-transfer-artifact@v0.3.9
         with:
           name: 'release-notes'
 
@@ -33,10 +33,10 @@ jobs:
     needs: [begin-release]
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Populate GitVersion variables
       id: gitversion_vars
-      uses: pwshrc/actions-determine-version@v0.8.5
+      uses: pwshrc/actions-determine-version@v0.8.6
       with:
         mode: 'download'
     - name: "Get artifact: PSGallery-package"
@@ -46,12 +46,12 @@ jobs:
         path: ./out/
     - name: Publish Prerelease to PSGallery (WhatIf)
       if: steps.gitversion_vars.outputs.PreReleaseTag != ''
-      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.7
+      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.9
       with:
         run: ./build/publish.ps1 -NUGET_KEY "abc" -Prerelease -WhatIf
     - name: Publish Release to PSGallery (WhatIf)
       if: steps.gitversion_vars.outputs.PreReleaseTag == ''
-      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.7
+      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.9
       with:
         run: ./build/publish.ps1 -NUGET_KEY "abc" -WhatIf
 
@@ -61,10 +61,10 @@ jobs:
     needs: [test-publish-psgallery-package]
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Populate GitVersion variables
       id: gitversion_vars
-      uses: pwshrc/actions-determine-version@v0.8.5
+      uses: pwshrc/actions-determine-version@v0.8.6
       with:
         mode: 'download'
     - name: "Get artifact: PSGallery-package"
@@ -74,14 +74,14 @@ jobs:
         path: ./out/
     - name: Publish Prerelease to PSGallery
       if: steps.gitversion_vars.outputs.PreReleaseTag != ''
-      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.7
+      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.9
       env:
         NUGET_KEY: ${{ secrets.NUGET_KEY }}
       with:
         run: ./build/publish.ps1 -NUGET_KEY "$env:NUGET_KEY" -Prerelease
     - name: Publish Release to PSGallery
       if: steps.gitversion_vars.outputs.PreReleaseTag == ''
-      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.7
+      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.9
       env:
         NUGET_KEY: ${{ secrets.NUGET_KEY }}
       with:
@@ -93,15 +93,15 @@ jobs:
     needs: [publish-psgallery-package]
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Get GitVersion
       id: gitversion_vars
-      uses: pwshrc/actions-determine-version@v0.8.5
+      uses: pwshrc/actions-determine-version@v0.8.6
       with:
         mode: 'download'
     - name: Get release notes
       id: get-releasenotes
-      uses: pwshrc/actions-create-release-notes@v0.8.6
+      uses: pwshrc/actions-create-release-notes@v0.8.8
       with:
         mode: 'download'
         github_token: "${{ secrets.GITHUB_TOKEN }}"
