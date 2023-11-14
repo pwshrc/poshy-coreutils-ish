@@ -36,7 +36,7 @@ jobs:
       uses: actions/checkout@v4
     - name: Populate GitVersion variables
       id: gitversion_vars
-      uses: pwshrc/actions-determine-version@v0.8.6
+      uses: pwshrc/actions-determine-version@v0.8.7
       with:
         mode: 'download'
     - name: "Get artifact: PSGallery-package"
@@ -64,7 +64,7 @@ jobs:
       uses: actions/checkout@v4
     - name: Populate GitVersion variables
       id: gitversion_vars
-      uses: pwshrc/actions-determine-version@v0.8.6
+      uses: pwshrc/actions-determine-version@v0.8.7
       with:
         mode: 'download'
     - name: "Get artifact: PSGallery-package"
@@ -96,7 +96,7 @@ jobs:
       uses: actions/checkout@v4
     - name: Get GitVersion
       id: gitversion_vars
-      uses: pwshrc/actions-determine-version@v0.8.6
+      uses: pwshrc/actions-determine-version@v0.8.7
       with:
         mode: 'download'
     - name: Get release notes

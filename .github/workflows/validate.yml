@@ -24,7 +24,7 @@ jobs:
     steps:
     - name: Populate GitVersion variables
       id: gitversion_vars
-      uses: pwshrc/actions-determine-version@v0.8.6
+      uses: pwshrc/actions-determine-version@v0.8.7
       with:
         mode: 'upload'
 
@@ -48,7 +48,7 @@ jobs:
       uses: actions/checkout@v4
     - name: Populate GitVersion
       id: gitversion_vars
-      uses: pwshrc/actions-determine-version@v0.8.6
+      uses: pwshrc/actions-determine-version@v0.8.7
       with:
         mode: 'download'
     - name: Populate release notes
