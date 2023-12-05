@@ -13,7 +13,7 @@ if ($IsLinux) {
             [System.IO.UnixFileMode]
             $Mode
         )
-        [string] $modeInOctal = [Convert]::ToString($Mode, 8)
+        [string] $modeInOctal = [Convert]::ToString([int]$Mode, 8)
         Get-Item $Path | ForEach-Object { chmod $modeInOctal $_.FullName } | Out-Null
     }
 } else {
