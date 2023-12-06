@@ -24,11 +24,15 @@ Describe "SUT file" {
         }
 
         Describe "function" {
+            BeforeDiscovery {
+                $FileModeSettingNotSupported = $IsWindows -or ($null -eq [Type]::GetType("System.IO.UnixFileMode"))
+            }
+
             It "should be defined" {
                 Get-Command -Name $SutName -CommandType Function | Should -Not -BeNullOrEmpty
             }
 
-            Context "when invoked" {
+            Context "when invoked" -Skip:$FileModeSettingNotSupported {
                 Context "with no arguments" {
                     It "should throw" {
                         { & $SutName } | Should -Throw
