@@ -9,12 +9,12 @@ if ($IsLinux) {
             [Parameter(Mandatory = $true)]
             [string[]]
             $Path,
+
             [Parameter(Mandatory = $true)]
-            [System.IO.UnixFileMode]
-            $Mode
+            [ValidateScript({ ConvertTo-NixMode -FromOctal $_ })]
+            [string] $ModeOctal
         )
-        [string] $modeInOctal = [Convert]::ToString([int]$Mode, 8)
-        Get-Item $Path | ForEach-Object { chmod $modeInOctal $_.FullName } | Out-Null
+        Get-Item $Path | ForEach-Object { chmod $ModeOctal $_.FullName } | Out-Null
     }
 } else {
     function Set-ItemNixMode() {
