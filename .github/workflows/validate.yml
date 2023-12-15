@@ -73,7 +73,7 @@ jobs:
           [Version] $moduleVersion = [Version]::new($Env:ModuleVersionMajor, $Env:ModuleVersionMinor, $Env:ModuleVersionPatch)
           ./build/package.ps1 -PackageVersion $Env:PackageVersion -ModuleVersion $moduleVersion -PackageVersionPrereleaseTag $Env:PackageVersionPrereleaseTag -ReleaseNotes $releaseNotes -CommitSha $Env:CommitSha
     - name: "Create artifact: PSGallery-package"
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: PSGallery-package
         path: ./out/*.nupkg
@@ -116,7 +116,7 @@ jobs:
       with:
         run: ./build/test.ps1 -UsePackageExport -CI -OutputFilesPrefix "${{ matrix.os }}-" -NoFail:([bool]"${{ matrix.experimental }}")
     - name: "Create artifact: tests-${{ matrix.os }}"
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: "tests-${{ matrix.os }}"
