@@ -40,7 +40,7 @@ jobs:
       with:
         mode: 'download'
     - name: "Get artifact: PSGallery-package"
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: PSGallery-package
         path: ./out/
@@ -68,7 +68,7 @@ jobs:
       with:
         mode: 'download'
     - name: "Get artifact: PSGallery-package"
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: PSGallery-package
         path: ./out/
@@ -106,7 +106,7 @@ jobs:
         mode: 'download'
         github_token: "${{ secrets.GITHUB_TOKEN }}"
     - name: "Get artifact: PSGallery-package"
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: PSGallery-package
         path: ./out/
