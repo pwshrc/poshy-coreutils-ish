@@ -20,7 +20,7 @@ if ($IsLinux) {
             # only if the UnixFileMode type is available.
             if ([Type]::GetType("System.IO.UnixFileMode")) {
                 $Attribute = [System.Management.Automation.ValidateScriptAttribute]::new(
-                    [ScriptBlock]::Create("ConvertTo-NixMode -FromOctal $_")
+                    [ScriptBlock]::Create("ConvertTo-NixMode -FromOctal `$_")
                 )
                 $RuntimeParameterDictionary = [System.Management.Automation.RuntimeDefinedParameterDictionary]::new()
                 $RuntimeParameterDictionary.Add(
