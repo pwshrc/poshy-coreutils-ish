@@ -19,16 +19,16 @@ if ($IsLinux) {
             # Add the ValidateScript attribute to the ModeOctal parameter, but
             # only if the UnixFileMode type is available.
             if ([Type]::GetType("System.IO.UnixFileMode")) {
-                $Attribute = [System.Management.Automation.ValidateScriptAttribute]::new(
+                $Attributes = @([System.Management.Automation.ValidateScriptAttribute]::new(
                     [ScriptBlock]::Create("ConvertTo-NixMode -FromOctal `$_")
-                )
+                ))
                 $RuntimeParameterDictionary = [System.Management.Automation.RuntimeDefinedParameterDictionary]::new()
                 $RuntimeParameterDictionary.Add(
                     "ModeOctal",
                     [System.Management.Automation.RuntimeDefinedParameter]::new(
                         "ModeOctal",
                         [string],
-                        [System.Collections.ObjectModel.Collection[System.Attribute]]::new($Attribute)
+                        [System.Collections.ObjectModel.Collection[System.Attribute]]::new($Attributes)
                     )
                 )
                 return $RuntimeParameterDictionary
