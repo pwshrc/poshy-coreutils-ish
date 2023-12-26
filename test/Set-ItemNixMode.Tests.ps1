@@ -42,6 +42,8 @@ Describe "SUT file" {
                 Context "for an existing file" {
                     BeforeEach {
                         $targetFile = New-TemporaryFile
+
+                        function ConvertTo-NixMode { $true }
                     }
 
                     AfterEach {
@@ -49,38 +51,38 @@ Describe "SUT file" {
                     }
 
                     Context "ModeOctal is 700" {
-                        It "should set the mode" {
+                        It "should set the UnixFileMode" {
                             $modeOctalParameter = '700'
-                            [System.IO.UnixFileMode] $expectedMode = [System.IO.UnixFileMode]::OwnerRead -bor [System.IO.UnixFileMode]::OwnerWrite -bor [System.IO.UnixFileMode]::OwnerExecute
+                            [System.IO.UnixFileMode] $expectedMode = [System.IO.UnixFileMode]::UserRead -bor [System.IO.UnixFileMode]::UserWrite -bor [System.IO.UnixFileMode]::UserExecute
 
                             Set-ItemNixMode -Path $targetFile -ModeOctal $modeOctalParameter
 
                             $targetFile.Refresh()
-                            $targetFile.Mode | Should -Be $expectedMode
+                            $targetFile.UnixFileMode | Should -Be $expectedMode
                         }
                     }
 
                     Context "ModeOctal is 555" {
-                        It "should set the mode" {
+                        It "should set the UnixFileMode" {
                             $modeOctalParameter = '555'
-                            [System.IO.UnixFileMode] $expectedMode = [System.IO.UnixFileMode]::OwnerRead -bor [System.IO.UnixFileMode]::OwnerExecute -bor [System.IO.UnixFileMode]::GroupRead -bor [System.IO.UnixFileMode]::GroupExecute -bor [System.IO.UnixFileMode]::OthersRead -bor [System.IO.UnixFileMode]::OthersExecute
+                            [System.IO.UnixFileMode] $expectedMode = [System.IO.UnixFileMode]::GroupRead -bor [System.IO.UnixFileMode]::GroupExecute -bor [System.IO.UnixFileMode]::OtherRead -bor [System.IO.UnixFileMode]::OtherExecute -bor [System.IO.UnixFileMode]::UserRead -bor [System.IO.UnixFileMode]::UserExecute
 
                             Set-ItemNixMode -Path $targetFile -ModeOctal $modeOctalParameter
 
                             $targetFile.Refresh()
-                            $targetFile.Mode | Should -Be $expectedMode
+                            $targetFile.UnixFileMode | Should -Be $expectedMode
                         }
                     }
 
                     Context "ModeOctal is 644" {
-                        It "should set the mode" {
+                        It "should set the UnixFileMode" {
                             $modeOctalParameter = '644'
-                            [System.IO.UnixFileMode] $expectedMode = [System.IO.UnixFileMode]::OwnerRead -bor [System.IO.UnixFileMode]::OwnerWrite -bor [System.IO.UnixFileMode]::GroupRead -bor [System.IO.UnixFileMode]::OthersRead
+                            [System.IO.UnixFileMode] $expectedMode = [System.IO.UnixFileMode]::UserRead -bor [System.IO.UnixFileMode]::UserWrite -bor [System.IO.UnixFileMode]::GroupRead -bor [System.IO.UnixFileMode]::OtherRead
 
                             Set-ItemNixMode -Path $targetFile -ModeOctal $modeOctalParameter
 
                             $targetFile.Refresh()
-                            $targetFile.Mode | Should -Be $expectedMode
+                            $targetFile.UnixFileMode | Should -Be $expectedMode
                         }
                     }
                 }
