@@ -6,3 +6,6 @@ minor-version-bump-message: '(\+semver:\s?(feature|minor))|^\s*(✨|🏗|⚡|�
 patch-version-bump-message: '(\+semver:\s?(fix|patch))|^\s*(🩹|🚑|🔒|♻|💚|⬆|⬇|🔧|📝|🔥|👷‍♂️|🔨|⏪|🚚|🎨|🚀|💄|✅|🔐|🚨|🚧|📌|📈|🌐|✏️|💩|🔀|📦|👽|🍱|♿|💡|🍻|💬|🗨️|🗃️|🔊|🔉|🔈|🔇|👥|📱|🤡|🥚|🙈|📸|📷|⚗️|🔍|🔎|🌱|🚩|🥅|💫|🗑️|🛂|🧐|⚰️|🧑‍💻|👨‍💻|👩‍💻|💸)'
 no-bump-message: '\+semver:\s?(none|skip)'
 assembly-versioning-scheme: MajorMinorPatch
+branches:
+  main:
+    mode: ContinuousDeployment

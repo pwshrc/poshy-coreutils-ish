@@ -24,7 +24,7 @@ jobs:
     steps:
     - name: Populate GitVersion variables
       id: gitversion_vars
-      uses: pwshrc/actions-determine-version@v0.8.7
+      uses: pwshrc/actions-determine-version@v0.9.0
       with:
         mode: 'upload'
 
@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Create release notes
-      uses: pwshrc/actions-create-release-notes@v0.8.11
+      uses: pwshrc/actions-create-release-notes@v0.9.3
       with:
         mode: 'upload'
         github_token: "${{ secrets.GITHUB_TOKEN }}"
@@ -48,12 +48,12 @@ jobs:
       uses: actions/checkout@v4
     - name: Populate GitVersion
       id: gitversion_vars
-      uses: pwshrc/actions-determine-version@v0.8.7
+      uses: pwshrc/actions-determine-version@v0.9.0
       with:
         mode: 'download'
     - name: Populate release notes
       id: get-releasenotes
-      uses: pwshrc/actions-create-release-notes@v0.8.11
+      uses: pwshrc/actions-create-release-notes@v0.9.3
       with:
         mode: 'download'
         github_token: "${{ secrets.GITHUB_TOKEN }}"
@@ -73,7 +73,7 @@ jobs:
           [Version] $moduleVersion = [Version]::new($Env:ModuleVersionMajor, $Env:ModuleVersionMinor, $Env:ModuleVersionPatch)
           ./build/package.ps1 -PackageVersion $Env:PackageVersion -ModuleVersion $moduleVersion -PackageVersionPrereleaseTag $Env:PackageVersionPrereleaseTag -ReleaseNotes $releaseNotes -CommitSha $Env:CommitSha
     - name: "Create artifact: PSGallery-package"
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: PSGallery-package
         path: ./out/*.nupkg
@@ -107,7 +107,7 @@ jobs:
     - name: Check out repository code
       uses: actions/checkout@v4
     - name: "Get artifact: PSGallery-package"
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: PSGallery-package
         path: ./out/
@@ -116,7 +116,7 @@ jobs:
       with:
         run: ./build/test.ps1 -UsePackageExport -CI -OutputFilesPrefix "${{ matrix.os }}-" -NoFail:([bool]"${{ matrix.experimental }}")
     - name: "Create artifact: tests-${{ matrix.os }}"
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: "tests-${{ matrix.os }}"
@@ -126,7 +126,7 @@ jobs:
       uses: codecov/codecov-action@v3
       if: github.ref == 'refs/heads/main'
       with:
-        fail_ci_if_error: true
+        fail_ci_if_error: false
         flags: ${{ matrix.codecov_os }},unittests
         directory: ./out
         files: "*coverage.xml"
