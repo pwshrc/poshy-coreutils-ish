@@ -112,7 +112,7 @@ jobs:
         path: ./out/
     - name: Publish GitHub release
       id: publish_github_release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2.2.0
       with:
         token: "${{ secrets.RELEASE_GITHUB_TOKEN }}"
         name: "v${{ steps.gitversion_vars.outputs.SemVer }}"
