@@ -46,12 +46,12 @@ jobs:
         path: ./out/
     - name: Publish Prerelease to PSGallery (WhatIf)
       if: steps.gitversion_vars.outputs.PreReleaseTag != ''
-      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.10
+      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.3.0
       with:
         run: ./build/publish.ps1 -NUGET_KEY "abc" -Prerelease -WhatIf
     - name: Publish Release to PSGallery (WhatIf)
       if: steps.gitversion_vars.outputs.PreReleaseTag == ''
-      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.10
+      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.3.0
       with:
         run: ./build/publish.ps1 -NUGET_KEY "abc" -WhatIf
 
@@ -74,14 +74,14 @@ jobs:
         path: ./out/
     - name: Publish Prerelease to PSGallery
       if: steps.gitversion_vars.outputs.PreReleaseTag != ''
-      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.10
+      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.3.0
       env:
         NUGET_KEY: ${{ secrets.NUGET_KEY }}
       with:
         run: ./build/publish.ps1 -NUGET_KEY "$env:NUGET_KEY" -Prerelease
     - name: Publish Release to PSGallery
       if: steps.gitversion_vars.outputs.PreReleaseTag == ''
-      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.2.10
+      uses: pwshrc/actions-invoke-lib-dependent-pwsh@v0.3.0
       env:
         NUGET_KEY: ${{ secrets.NUGET_KEY }}
       with:
@@ -101,7 +101,7 @@ jobs:
         mode: 'download'
     - name: Get release notes
       id: get-releasenotes
-      uses: pwshrc/actions-create-release-notes@v0.9.3
+      uses: pwshrc/actions-create-release-notes@v0.9.4
       with:
         mode: 'download'
         github_token: "${{ secrets.GITHUB_TOKEN }}"
