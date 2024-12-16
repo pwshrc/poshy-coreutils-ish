@@ -123,9 +123,10 @@ jobs:
         path: ./out/*.xml
         if-no-files-found: error
     - name: Upload coverage report to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v5.1.1
       if: github.ref == 'refs/heads/main'
       with:
+        token: ${{ secrets.CODECOV_TOKEN }}
         fail_ci_if_error: false
         flags: ${{ matrix.codecov_os }},unittests
         directory: ./out
