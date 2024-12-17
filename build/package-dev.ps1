@@ -20,7 +20,19 @@ elseif (Get-Command gitversion -ErrorAction SilentlyContinue) {
 if ($gitversion_bin) {
     [PSObject] $versionInfo = & $gitversion_bin | ConvertFrom-Json
 
-    [string] $PackageVersion = $versionInfo | Select-Object -ExpandProperty NuGetVersionV2
+    [string] $paddedNumberFormatPattern = "0000"
+    [string] $prereleaseLabelShortened = ($versionInfo.PreReleaseLabel.Length -gt 16) ? $versionInfo.PreReleaseLabel.Substring(0, 16) : $versionInfo.PreReleaseLabel
+    # TODO: Verify 'PreReleaseNumber' is correct suffix. Ambiguous from historical documentation found at https://github.com/GitTools/GitVersion/blob/v4.0.0/docs/more-info/variables.md.
+    [Nullable[int]] $preReleaseNumber = $versionInfo.PreReleaseNumber -as [int]
+    if ($preReleaseNumber -and $versionInfo.PreReleaseLabel) {
+      [string] $LegacySemVer = $versionInfo.MajorMinorPatch + "-" + $versionInfo.PreReleaseLabel + $preReleaseNumber
+      [string] $LegacySemVerPadded = $versionInfo.MajorMinorPatch + "-" + $prereleaseLabelShortened + $preReleaseNumber.ToString($paddedNumberFormatPattern)
+    } else {
+      [string] $LegacySemVer = $versionInfo.MajorMinorPatch
+      [string] $LegacySemVerPadded = $versionInfo.MajorMinorPatch
+    }
+    [string] $PackageVersion = $LegacySemVerPadded
+
     [string] $PackageVersionPrereleaseTag = $versionInfo | Select-Object -ExpandProperty PreReleaseTag
     [string] $assemblySemVer = $versionInfo | Select-Object -ExpandProperty AssemblySemVer
     [string] $CommitSha = $versionInfo | Select-Object -ExpandProperty Sha
